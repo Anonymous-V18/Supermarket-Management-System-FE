@@ -1,0 +1,81 @@
+<nav id="sidebar" class="sidebar-wrapper">
+  <!-- App brand starts -->
+  <div class="app-brand px-3 py-2 d-flex align-items-center">
+    <a href="index.html">
+      <img src="assets/images/logo.svg" class="logo" alt="Bootstrap Gallery" />
+    </a>
+  </div>
+  <!-- App brand ends -->
+  <!-- Sidebar menu starts -->
+  <div class="sidebarMenuScroll" ngSkipHydration>
+    <ul class="sidebar-menu">
+      <li routerLinkActive="active current-page">
+        <a [routerLink]="['/home/dashboard']">
+          <i class="fa fa-chart-pie"></i>
+          <span class="menu-text">Thống kê chung</span>
+        </a>
+      </li>
+      <li routerLinkActive="active current-page">
+        <a [routerLink]="['/home/employee']">
+          <i class="fa fa-user-group"></i>
+          <span class="menu-text">Nhân sự</span>
+        </a>
+      </li>
+      <li routerLinkActive="active current-page">
+        <a [routerLink]="['/home/product']">
+          <i class="fa fa-cubes"></i>
+          <span class="menu-text">Sản phẩm</span>
+        </a>
+      </li>
+      <li routerLinkActive="active current-page">
+        <a [routerLink]="['/home/supplier']">
+          <i class="fa fa-handshake"></i>
+          <span class="menu-text">Nhà cung cấp</span>
+        </a>
+      </li>
+      <li routerLinkActive="active current-page">
+        <a [routerLink]="['/home/warehouse']">
+          <i class="fa fa-store"></i>
+          <span class="menu-text">Kho</span>
+        </a>
+      </li>
+      <li routerLinkActive="active current-page">
+        <a [routerLink]="['/home/stockin']">
+          <i class="fa fa-arrow-right-to-bracket"></i>
+          <span class="menu-text">Nhập kho</span>
+        </a>
+      </li>
+      <li routerLinkActive="active current-page">
+        <a [routerLink]="['/home/stockout']">
+          <i class="fa fa-arrow-right-from-bracket"></i>
+          <span class="menu-text">Xuất kho</span>
+        </a>
+      </li>
+      <li routerLinkActive="active current-page">
+        <a [routerLink]="['/home/invoice']">
+          <i class="fa fa-file-invoice-dollar"></i>
+          <span class="menu-text">Bán hàng</span>
+        </a>
+      </li>
+      <li>
+        <a>
+          <i class="fa fa-tags"></i>
+          <span class="menu-text">Khuyến mãi</span>
+          <span class="badge border border-danger text-danger rounded-5 ms-2"
+            >Sắp ra mắt</span
+          >
+        </a>
+      </li>
+      <li>
+        <a>
+          <i class="fa fa-user-gear"></i>
+          <span class="menu-text">Tài khoản</span>
+          <span class="badge border border-danger text-danger rounded-5 ms-2"
+            >Sắp ra mắt</span
+          >
+        </a>
+      </li>
+    </ul>
+  </div>
+  <!-- Sidebar menu ends -->
+</nav>

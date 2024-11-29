@@ -1,0 +1,58 @@
+<div class="row">
+  <div class="col-12">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h1 class="card-title">Danh sách nhân viên</h1>
+        <!-- <br />
+        <a href="#" class="btn btn-primary"
+          ><i class="bi bi-plus-square"></i>&nbsp;&nbsp;Thêm nhân viên</a
+        > -->
+      </div>
+      <div class="card-body">
+        <div class="border border-dark rounded-3 table-responsive">
+          <table class="table table-striped align-middle custom-table m-0">
+            <thead>
+              <tr class="text-center">
+                <th>Xem chi tiết</th>
+                <th>Mã nhân viên</th>
+                <th>Tên nhân viên</th>
+                <th>Giới tính</th>
+                <th>Ngày sinh</th>
+                <th>Vị trí</th>
+                <th>Địa chỉ</th>
+              </tr>
+            </thead>
+            <tbody class="text-center">
+              @for (employee of employeeDTOs; track $index) {
+              <tr>
+                <td>
+                  <a><i class="bi bi-info-circle-fill"></i></a>
+                </td>
+                <td id="employeeId">{{ employee.code }}</td>
+                <td>{{ employee.name }}</td>
+                <td>{{ employee.gender }}</td>
+                <td>{{ employee.dob }}</td>
+                <td>
+                  {{ employee.position.name }}
+                </td>
+                <td>
+                  {{ employee.address.street }},
+                  {{ employee.address.ward.name }},
+                  {{ employee.address.district.name }},
+                  {{ employee.address.district.city.name }}
+                </td>
+              </tr>
+              }@empty {
+              <tr>
+                <td colspan="7" class="text-center">
+                  <b>Hiện không có nhân viên nào trong hệ thống !</b>
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

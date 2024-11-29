@@ -1,0 +1,54 @@
+<div class="row">
+  <div class="col-12">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h1 class="card-title">Danh sách nhà cung cấp</h1>
+        <!-- <br />
+        <a href="#" class="btn btn-primary"
+          ><i class="bi bi-plus-square"></i>&nbsp;&nbsp;Thêm nhà cung cấp</a
+        > -->
+      </div>
+      <div class="card-body">
+        <div class="border border-dark rounded-3 table-responsive">
+          <table class="table table-striped align-middle custom-table m-0">
+            <thead>
+              <tr class="text-center">
+                <th>Xem chi tiết</th>
+                <th>Mã nhà cung cấp</th>
+                <th>Tên nhà cung cấp</th>
+                <th>Ngày hợp tác</th>
+                <th>Liên hệ</th>
+                <th>Địa chỉ</th>
+              </tr>
+            </thead>
+            <tbody class="text-center">
+              @for (supplier of supplierDTOs; track $index) {
+              <tr>
+                <td>
+                  <a><i class="bi bi-info-circle-fill"></i></a>
+                </td>
+                <td id="supplierId">{{ supplier.id }}</td>
+                <td>{{ supplier.name }}</td>
+                <td>{{ supplier.contactDate }}</td>
+                <td>{{ supplier.phoneNumber }}</td>
+                <td>
+                  {{ supplier.address.street }},
+                  {{ supplier.address.ward.name }},
+                  {{ supplier.address.district.name }},
+                  {{ supplier.address.district.city.name }}
+                </td>
+              </tr>
+              }@empty {
+              <tr>
+                <td colspan="6" class="text-center">
+                  <b>Hiện không có nhà cung cấp nào trong hệ thống !</b>
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

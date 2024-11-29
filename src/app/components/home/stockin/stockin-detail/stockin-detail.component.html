@@ -1,0 +1,257 @@
+<form [formGroup]="stockInUpdateForm" (ngSubmit)="onSubmit()">
+  <div class="row gx-3">
+    <div class="col-xxl-12">
+      <div class="card mb-3">
+        <div class="card-header">
+          <h1 class="card-title">Hóa đơn nhập kho</h1>
+        </div>
+        <div class="card-body">
+          <!-- Row start -->
+          <div class="row gx-3">
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <label class="form-label">Ngày tạo</label>
+                <input
+                  type="datetime-local"
+                  class="form-control"
+                  formControlName="stockInDate"
+                />
+              </div>
+            </div>
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <label class="form-label">Kho</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  value="{{ stockInDTO.warehouse.name }}"
+                  readonly
+                />
+              </div>
+            </div>
+
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <label class="form-label">Nhà cung cấp</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  value="{{ stockInDTO.supplier.name }}"
+                  readonly
+                />
+              </div>
+            </div>
+
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <div class="mb-3 form-group">
+                  <label class="form-label">Số lượng hàng</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    formControlName="totalProduct"
+                    readonly
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <div class="mb-3 form-group">
+                  <label class="form-label">Tổng tiền</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    formControlName="totalPrice"
+                    readonly
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <div class="mb-3 form-group">
+                  <label class="form-label">Trạng thái</label>
+                  <select class="form-select" formControlName="statusInvoiceId">
+                    @for (statusInvoice of statusInvoiceDTOs; track
+                    statusInvoice) { @if( stockInDTO.statusInvoice.id ===
+                    statusInvoice.id) {
+                    <option value="{{ statusInvoice.id }}">
+                      {{ statusInvoice.name }}
+                    </option>
+                    } @else {
+                    <option value="{{ statusInvoice.id }}">
+                      {{ statusInvoice.name }}
+                    </option>
+                    } }
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Row end -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row gx-3">
+    <div class="col-12">
+      <div class="card mb-3">
+        <div class="card-header">
+          <h3 class="card-title">Danh sách sản phẩm có trong hóa đơn</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <div class="border border-dark rounded-3 table-responsive">
+              <table class="table align-middle table-striped table-hover m-0">
+                <thead>
+                  <tr style="text-align: center">
+                    <th>Xóa</th>
+                    <th hidden>Mã chi tiết</th>
+                    <th>Sản phẩm</th>
+                    <th>Số lượng</th>
+                    <th>Giá nhập</th>
+                    <th>Giá bán</th>
+                  </tr>
+                </thead>
+                <tbody style="text-align: center">
+                  <ng-container formArrayName="stockInDetailUpdateRequests">
+                    @for (stockInDetail of stockInDetailUpdate().controls; track
+                    stockInDetail; let idx = $index) {
+                    <tr [formGroupName]="idx">
+                      <td>
+                        <i
+                          class="bi bi-trash-fill"
+                          (click)="removeStockInDetailUpdateRequest(idx)"
+                          style="cursor: pointer"
+                        ></i>
+                      </td>
+                      <td hidden>
+                        <input
+                          type="text"
+                          formControlName="id"
+                          value="{{ stockInDetail.value.id }}"
+                          readonly
+                        />
+                      </td>
+                      <td>{{ stockInDetail.value.productName }}</td>
+                      <td>
+                        <input
+                          type="number"
+                          min="1"
+                          class="form-control"
+                          formControlName="quantity"
+                          value="{{ stockInDetail.value.quantity }}"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          min="1"
+                          class="form-control"
+                          formControlName="inputPrice"
+                          value="{{ stockInDetail.value.inputPrice }}"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          min="1"
+                          class="form-control"
+                          formControlName="salePrice"
+                          value="{{ stockInDetail.value.salePrice }}"
+                        />
+                      </td>
+                    </tr>
+                    }
+                  </ng-container>
+                  <ng-container formArrayName="stockInDetailInsertRequests">
+                    @for (stockInDetail of stockInDetailInsert().controls; track
+                    stockInDetail; let idx = $index) {
+                    <tr [formGroupName]="idx">
+                      <td>
+                        <i
+                          class="bi bi-trash-fill"
+                          (click)="removeStockInDetailInsertRequest(idx)"
+                          style="cursor: pointer"
+                        ></i>
+                      </td>
+                      <td>
+                        <select class="form-select" formControlName="productId">
+                          @for (product of productDTOs; track product) {
+                          <option value="{{ product.id }}">
+                            {{ product.name }}
+                          </option>
+                          }
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          min="1"
+                          class="form-control"
+                          formControlName="quantity"
+                          [readOnly]="
+                            stockInUpdateForm.controls.stockInDetailInsertRequests
+                              .at(idx)
+                              .get('productId')!.invalid
+                          "
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          min="1"
+                          class="form-control"
+                          formControlName="inputPrice"
+                          readonly
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          min="1"
+                          class="form-control"
+                          formControlName="salePrice"
+                          readonly
+                        />
+                      </td>
+                    </tr>
+                    }
+                    <tr
+                      style="cursor: pointer"
+                      (click)="addStockInDetailInsertRequest()"
+                    >
+                      <td colspan="5" class="text-center bg-primary-subtle">
+                        <i class="bi bi-plus-circle-fill"></i>
+                        &nbsp; <b>Thêm sản phẩm</b>
+                      </td>
+                    </tr>
+                  </ng-container>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <div class="d-flex gap-2 justify-content-end form-group">
+      <a [routerLink]="['/home/stockin']" class="btn btn-outline-secondary"
+        >Hủy</a
+      >
+      <button
+        type="submit"
+        class="btn btn-success"
+        [disabled]="stockInUpdateForm.invalid"
+      >
+        Xác nhận và lưu
+      </button>
+    </div>
+  </div>
+</form>

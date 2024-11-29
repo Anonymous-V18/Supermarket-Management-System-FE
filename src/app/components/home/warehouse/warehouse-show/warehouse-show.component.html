@@ -1,0 +1,60 @@
+<div class="row">
+  <div class="col-12">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h1 class="card-title">Danh sách kho</h1>
+        <!-- <br />
+        <a href="#" class="btn btn-primary"
+          ><i class="bi bi-plus-square"></i>&nbsp;&nbsp;Thêm kho</a
+        > -->
+      </div>
+      <div class="card-body">
+        <div class="border border-dark rounded-3 table-responsive">
+          <table class="table table-striped align-middle custom-table m-0">
+            <thead>
+              <tr class="text-center">
+                <th>Xem chi tiết</th>
+                <th>Mã kho</th>
+                <th>Tên kho</th>
+                <th>Ngày thành lập</th>
+                <th>Liên hệ</th>
+                <th>Địa chỉ</th>
+              </tr>
+            </thead>
+            <tbody class="text-center">
+              @for (warehouse of warehouseDTOs; track $index) {
+              <tr>
+                <td>
+                  <a><i class="bi bi-info-circle-fill"></i></a>
+                </td>
+                <td id="warehouseId">{{ warehouse.id }}</td>
+                <td>{{ warehouse.name }}</td>
+                <td>
+                  {{
+                    warehouse.establishDate.toLocaleString("en-GB", {
+                      timeZone: "Asia/Bangkok"
+                    })
+                  }}
+                </td>
+                <td>{{ warehouse.phoneNumber }}</td>
+                <td>
+                  {{ warehouse.address.street }},
+                  {{ warehouse.address.ward.name }},
+                  {{ warehouse.address.district.name }},
+                  {{ warehouse.address.district.city.name }}
+                </td>
+              </tr>
+              }@empty {
+              <tr>
+                <td colspan="5" class="text-center">
+                  <b>Hiện không có kho nào trong hệ thống !</b>
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

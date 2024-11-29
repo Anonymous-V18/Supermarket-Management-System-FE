@@ -1,0 +1,74 @@
+<div class="row">
+  <div class="col-12">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h1 class="card-title">Danh sách hóa đơn nhập kho</h1>
+        <br />
+        <a [routerLink]="['/home/stockin/create']" class="btn btn-primary"
+          ><i class="fa fa-square-plus"></i>&nbsp;&nbsp;Thêm hóa đơn nhập kho</a
+        >
+      </div>
+      <div class="card-body">
+        <div class="border border-dark rounded-3 table-responsive">
+          <table class="table table-striped align-middle custom-table m-0">
+            <thead>
+              <tr class="text-center">
+                <th>Xem chi tiết</th>
+                <th>Mã hóa đơn</th>
+                <th>Ngày tạo</th>
+                <th>Tổng sản phẩm</th>
+                <th>Tổng tiền</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody class="text-center">
+              @for (stockin of stockinDTOs; track $index) {
+              <tr>
+                <td>
+                  <a
+                    [routerLink]="['/home/stockin/detail']"
+                    [queryParams]="{ stockInId: stockin.id }"
+                    ><i
+                      class="bi bi-info-circle-fill"
+                      style="cursor: pointer"
+                    ></i
+                  ></a>
+                </td>
+                <td>{{ stockin.id }}</td>
+                <td>
+                  {{ stockin.stockInDate | date : "dd-MM-yyyy HH:mm:ss a" }}
+                </td>
+                <td>
+                  {{ stockin.totalProduct }}
+                </td>
+                <td>{{ stockin.totalPrice }}</td>
+                <td>
+                  @switch (stockin.statusInvoice.code) { @case ('NOT_PAID') {
+                  <span class="badge border border-warning text-warning">
+                    {{ stockin.statusInvoice.name }}
+                  </span>
+                  } @case ('PAID') {
+                  <span class="badge border border-success text-success">
+                    {{ stockin.statusInvoice.name }}
+                  </span>
+                  } @case ('CANCELLED') {
+                  <span class="badge border border-danger text-danger">
+                    {{ stockin.statusInvoice.name }}
+                  </span>
+                  } }
+                </td>
+              </tr>
+              }@empty {
+              <tr>
+                <td colspan="6" class="text-center">
+                  <b>Hiện không có hóa đơn nhập kho nào trong hệ thống !</b>
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
