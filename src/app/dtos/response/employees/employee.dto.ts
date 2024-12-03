@@ -1,6 +1,6 @@
-import { Address } from "cluster";
-import { AddressDTOResponse } from "../addresses/address.dto";
-import { PositionDTOResponse } from "../positions/position.dto";
+import { AddressDTOResponse } from '../addresses/address.dto';
+import { PositionDTOResponse } from '../positions/position.dto';
+import { UserDetailsDTOResponse } from '../users/user-details.dto';
 
 export class EmployeeDTOResponse {
   id: string;
@@ -12,6 +12,7 @@ export class EmployeeDTOResponse {
   email: string;
   position: PositionDTOResponse;
   address: AddressDTOResponse;
+  user: UserDetailsDTOResponse;
 
   constructor(
     id: string,
@@ -22,7 +23,8 @@ export class EmployeeDTOResponse {
     phoneNumber: string,
     email: string,
     position: PositionDTOResponse,
-    address: AddressDTOResponse
+    address: AddressDTOResponse,
+    user: UserDetailsDTOResponse
   ) {
     this.id = id;
     this.code = code;
@@ -33,5 +35,6 @@ export class EmployeeDTOResponse {
     this.email = email;
     this.position = position;
     this.address = address;
+    this.user = user;
   }
 }

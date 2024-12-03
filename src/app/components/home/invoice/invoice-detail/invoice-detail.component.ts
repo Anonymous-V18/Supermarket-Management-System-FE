@@ -30,8 +30,8 @@ import { InvoiceService } from './../../../../services/invoice.service';
 export class InvoiceDetailComponent {
   private formBuilder = inject(FormBuilder);
   invoiceUpdateForm = this.formBuilder.group({
-    totalProduct: ['', [Validators.required, Validators.min(1)]],
-    totalPrice: ['', [Validators.required, Validators.min(1)]],
+    totalProduct: ['', [Validators.required, Validators.min(0)]],
+    totalPrice: ['', [Validators.required, Validators.min(0)]],
     invoiceCreateDate: ['', [Validators.required]],
     statusInvoiceId: ['', [Validators.required]],
     customerId: ['', [Validators.required]],
@@ -73,11 +73,8 @@ export class InvoiceDetailComponent {
   ngOnInit(): void {
     this.activeRouter.queryParams.subscribe((params: any) => {
       this.invoiceId = params['invoiceId'];
-      this.getDetail(this.invoiceId);
+      this.getDetail();
     });
-    this.getAllStatusInvoice();
-    this.getAllProduct();
-    this.getAllCustomer();
   }
 
   onSubmit() {
@@ -103,13 +100,16 @@ export class InvoiceDetailComponent {
       });
   }
 
-  getDetail(invoiceId: string): void {
-    this.invoiceService.getDetail(invoiceId).subscribe({
+  getDetail(): void {
+    this.invoiceService.getDetail(this.invoiceId).subscribe({
       next: (response: ApiResponse<InvoiceDTOResponse>) => {
         this.invoiceDTO = response.result;
       },
       complete: () => {
         this.mappingDataFromDTOResponse();
+        this.getAllStatusInvoice();
+        this.getAllProduct();
+        this.getAllCustomer();
       },
       error: (error: any) => {
         this.toastrService.error(

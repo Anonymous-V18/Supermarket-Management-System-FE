@@ -28,8 +28,8 @@ import { WarehouseService } from './../../../../services/warehouse.service';
 export class StockinCreateComponent implements OnInit {
   private formBuilder = inject(FormBuilder);
   stockInCreateForm = this.formBuilder.group({
-    totalProduct: ['', [Validators.required, Validators.min(1)]],
-    totalPrice: ['', [Validators.required, Validators.min(1)]],
+    totalProduct: ['', [Validators.required, Validators.min(0)]],
+    totalPrice: ['', [Validators.required, Validators.min(0)]],
     stockInDate: ['', [Validators.required]],
     statusInvoiceId: ['', [Validators.required]],
     supplierId: ['', [Validators.required]],

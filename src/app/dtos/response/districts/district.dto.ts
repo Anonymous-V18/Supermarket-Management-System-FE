@@ -10,5 +10,4 @@ export class DistrictDTOResponse {
     this.name = name;
     this.city = city;
   }
-  
 }

@@ -43,6 +43,20 @@ export const routes: Routes = [
                 './components/home/employee/employee-show/employee-show.component'
               ).then((m) => m.EmployeeShowComponent),
           },
+          {
+            path: 'create',
+            loadComponent: () =>
+              import(
+                './components/home/employee/employee-create/employee-create.component'
+              ).then((m) => m.EmployeeCreateComponent),
+          },
+          {
+            path: 'detail',
+            loadComponent: () =>
+              import(
+                './components/home/employee/employee-detail/employee-detail.component'
+              ).then((m) => m.EmployeeDetailComponent),
+          },
         ],
       },
       {
@@ -59,6 +73,20 @@ export const routes: Routes = [
               import(
                 './components/home/product/product-show/product-show.component'
               ).then((m) => m.ProductShowComponent),
+          },
+          {
+            path: 'create',
+            loadComponent: () =>
+              import(
+                './components/home/product/product-create/product-create.component'
+              ).then((m) => m.ProductCreateComponent),
+          },
+          {
+            path: 'detail',
+            loadComponent: () =>
+              import(
+                './components/home/product/product-detail/product-detail.component'
+              ).then((m) => m.ProductDetailComponent),
           },
         ],
       },
@@ -170,6 +198,20 @@ export const routes: Routes = [
                 './components/home/supplier/supplier-show/supplier-show.component'
               ).then((m) => m.SupplierShowComponent),
           },
+          {
+            path: 'create',
+            loadComponent: () =>
+              import(
+                './components/home/supplier/supplier-create/supplier-create.component'
+              ).then((m) => m.SupplierCreateComponent),
+          },
+          {
+            path: 'detail',
+            loadComponent: () =>
+              import(
+                './components/home/supplier/supplier-detail/supplier-detail.component'
+              ).then((m) => m.SupplierDetailComponent),
+          },
         ],
       },
       {
@@ -186,6 +228,44 @@ export const routes: Routes = [
               import(
                 './components/home/warehouse/warehouse-show/warehouse-show.component'
               ).then((m) => m.WarehouseShowComponent),
+          },
+          {
+            path: 'create',
+            loadComponent: () =>
+              import(
+                './components/home/warehouse/warehouse-create/warehouse-create.component'
+              ).then((m) => m.WarehouseCreateComponent),
+          },
+          {
+            path: 'detail',
+            loadComponent: () =>
+              import(
+                './components/home/warehouse/warehouse-detail/warehouse-detail.component'
+              ).then((m) => m.WarehouseDetailComponent),
+          },
+        ],
+      },
+      {
+        path: 'account',
+        loadComponent: () =>
+          import('./components/home/account/account.component').then(
+            (m) => m.AccountComponent
+          ),
+        children: [
+          { path: '', redirectTo: 'account-info', pathMatch: 'full' },
+          {
+            path: 'account-info',
+            loadComponent: () =>
+              import(
+                './components/home/account/account-info/account-info.component'
+              ).then((m) => m.AccountInfoComponent),
+          },
+          {
+            path: 'change-password',
+            loadComponent: () =>
+              import(
+                './components/home/account/change-password/change-password.component'
+              ).then((m) => m.ChangePasswordComponent),
           },
         ],
       },

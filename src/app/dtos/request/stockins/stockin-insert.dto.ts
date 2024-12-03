@@ -3,7 +3,7 @@ import { StockInDetailInsertDTORequest } from '../stockin-details/stockin-detail
 export class StockInInsertDTORequest {
   totalProduct: number;
   totalPrice: number;
-  stockInDate: string;
+  stockInDate: Date;
   statusInvoiceId: string;
   stockInDetailInsertRequests: StockInDetailInsertDTORequest[];
   supplierId: string;

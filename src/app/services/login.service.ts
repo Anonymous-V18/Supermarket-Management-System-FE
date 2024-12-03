@@ -7,6 +7,7 @@ import { ApiUrl } from '../environments/api-url';
 import { CONSTANT } from '../environments/constant';
 import { ApiResponse } from './../dtos/response/api-response/api-response.dto';
 import { TokenService } from './token.service';
+import { AuthDTOResponse } from '../dtos/response/auth/auth.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -27,8 +28,8 @@ export class LoginService {
     });
   }
 
-  login(loginDTO: LoginDTORequest): Observable<ApiResponse<TokenDTOResponse>> {
-    return this.httpClient.post<ApiResponse<TokenDTOResponse>>(
+  login(loginDTO: LoginDTORequest): Observable<ApiResponse<AuthDTOResponse>> {
+    return this.httpClient.post<ApiResponse<AuthDTOResponse>>(
       this.loginUrl,
       loginDTO,
       this.apiConfig

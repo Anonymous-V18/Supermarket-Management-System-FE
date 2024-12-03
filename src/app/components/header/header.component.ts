@@ -1,8 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { LogoutService } from '../../services/logout.service';
 import { TokenService } from '../../services/token.service';
+import { LocalStorageService } from './../../services/local-storage.service';
 
 @Component({
   selector: 'app-header',
@@ -10,9 +11,10 @@ import { TokenService } from '../../services/token.service';
   templateUrl: './header.component.html',
   styleUrl: './header.component.css',
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit {
   private logoutService = inject(LogoutService);
   private tokenService = inject(TokenService);
+  private localStorageService = inject(LocalStorageService);
   private router = inject(Router);
   private toastrService = inject(ToastrService);
   private toastrConfig = {
@@ -20,6 +22,13 @@ export class HeaderComponent {
     closeButton: true,
     progressBar: true,
   };
+  name!: string;
+  username!: string;
+
+  ngOnInit(): void {
+    this.name = this.localStorageService.get('name') ?? '';
+    this.username = this.localStorageService.get('username') ?? '';
+  }
 
   logout() {
     this.logoutService.logout().subscribe({

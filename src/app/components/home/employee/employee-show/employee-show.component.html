@@ -3,10 +3,10 @@
     <div class="card mb-4">
       <div class="card-header">
         <h1 class="card-title">Danh sách nhân viên</h1>
-        <!-- <br />
-        <a href="#" class="btn btn-primary"
+        <br />
+        <a [routerLink]="['/home/employee/create']" class="btn btn-primary"
           ><i class="bi bi-plus-square"></i>&nbsp;&nbsp;Thêm nhân viên</a
-        > -->
+        >
       </div>
       <div class="card-body">
         <div class="border border-dark rounded-3 table-responsive">
@@ -23,15 +23,22 @@
               </tr>
             </thead>
             <tbody class="text-center">
-              @for (employee of employeeDTOs; track $index) {
+              @for (employee of employeeDTOs; track employee) {
               <tr>
                 <td>
-                  <a><i class="bi bi-info-circle-fill"></i></a>
+                  <a
+                    [routerLink]="['/home/employee/detail']"
+                    [queryParams]="{ employeeId: employee.id }"
+                    ><i
+                      class="bi bi-info-circle-fill"
+                      style="cursor: pointer"
+                    ></i
+                  ></a>
                 </td>
                 <td id="employeeId">{{ employee.code }}</td>
                 <td>{{ employee.name }}</td>
                 <td>{{ employee.gender }}</td>
-                <td>{{ employee.dob }}</td>
+                <td>{{ employee.dob | date : "dd/MM/yyyy" }}</td>
                 <td>
                   {{ employee.position.name }}
                 </td>

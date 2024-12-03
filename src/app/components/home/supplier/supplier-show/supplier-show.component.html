@@ -3,10 +3,10 @@
     <div class="card mb-4">
       <div class="card-header">
         <h1 class="card-title">Danh sách nhà cung cấp</h1>
-        <!-- <br />
-        <a href="#" class="btn btn-primary"
+        <br />
+        <a [routerLink]="['/home/supplier/create']" class="btn btn-primary"
           ><i class="bi bi-plus-square"></i>&nbsp;&nbsp;Thêm nhà cung cấp</a
-        > -->
+        >
       </div>
       <div class="card-body">
         <div class="border border-dark rounded-3 table-responsive">
@@ -25,11 +25,18 @@
               @for (supplier of supplierDTOs; track $index) {
               <tr>
                 <td>
-                  <a><i class="bi bi-info-circle-fill"></i></a>
+                  <a
+                    [routerLink]="['/home/supplier/detail']"
+                    [queryParams]="{ supplierId: supplier.id }"
+                    ><i
+                      class="bi bi-info-circle-fill"
+                      style="cursor: pointer"
+                    ></i
+                  ></a>
                 </td>
                 <td id="supplierId">{{ supplier.id }}</td>
                 <td>{{ supplier.name }}</td>
-                <td>{{ supplier.contactDate }}</td>
+                <td>{{ supplier.contactDate | date : "dd/MM/yyyy" }}</td>
                 <td>{{ supplier.phoneNumber }}</td>
                 <td>
                   {{ supplier.address.street }},

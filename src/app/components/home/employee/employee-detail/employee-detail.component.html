@@ -1,1 +1,176 @@
-<p>staff-detail works!</p>
+<form [formGroup]="employeeUpdateForm" (ngSubmit)="onSubmit()">
+  <div class="row gx-3">
+    <div class="col-xxl-12">
+      <div class="card mb-3">
+        <div class="card-header">
+          <h1 class="card-title">Thông tin nhân viên</h1>
+        </div>
+        <div class="card-body">
+          <!-- Row start -->
+          <div class="row gx-3">
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <label class="form-label">Họ tên</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="name"
+                />
+              </div>
+            </div>
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <label class="form-label">Giới tính</label>
+                <select class="form-select" formControlName="gender">
+                  <option value="Nam">Nam</option>
+                  <option value="Nữ">Nữ</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <label class="form-label">Ngày sinh</label>
+                <input
+                  type="datetime-local"
+                  class="form-control"
+                  formControlName="dob"
+                />
+              </div>
+            </div>
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <label class="form-label">Số điện thoại</label>
+                <input
+                  type="tel"
+                  class="form-control"
+                  formControlName="phoneNumber"
+                />
+              </div>
+            </div>
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <div class="mb-3 form-group">
+                  <label class="form-label">Email</label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    formControlName="email"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <div class="mb-3 form-group">
+                  <label class="form-label">Vị trí làm việc</label>
+                  <select class="form-select" formControlName="positionId">
+                    @for (position of positionDTOs; track position) {
+                    <option value="{{ position.id }}">
+                      {{ position.name }}
+                    </option>
+                    }
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6 col-sm-8 col-12">
+              <div class="mb-3 form-group">
+                <div class="mb-3 form-group">
+                  <label class="form-label">Quyền hạn</label>
+                  <ng-select
+                    [items]="roleDTOs"
+                    bindLabel="name"
+                    bindValue="id"
+                    formControlName="roleIds"
+                    multiple="true"
+                  >
+                  </ng-select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Row end -->
+          <!-- Row start -->
+          <div class="row gx-3" formGroupName="currentAddress">
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <div class="mb-3 form-group">
+                  <label class="form-label">Tỉnh \ Thành phố</label>
+                  <select
+                    class="form-select"
+                    formControlName="cityId"
+                    (change)="getAllDistrictByCity()"
+                  >
+                    @for (city of cityDTOs; track city) {
+                    <option value="{{ city.id }}">
+                      {{ city.name }}
+                    </option>
+                    }
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <div class="mb-3 form-group">
+                  <label class="form-label">Quận \ Huyện</label>
+                  <select
+                    class="form-select"
+                    formControlName="districtId"
+                    (change)="getAllWardByDistrict()"
+                  >
+                    @for (district of districtDTOs; track district) {
+                    <option value="{{ district.id }}">
+                      {{ district.name }}
+                    </option>
+                    }
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <div class="mb-3 form-group">
+                  <label class="form-label">Phường \ Xã</label>
+                  <select class="form-select" formControlName="wardId">
+                    @for (ward of wardDTOs; track ward) {
+                    <option value="{{ ward.id }}">{{ ward.name }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <div class="mb-3 form-group">
+                  <label class="form-label">Số nhà, tên đường</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    formControlName="street"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Row end -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <div class="d-flex gap-2 justify-content-end form-group">
+      <a [routerLink]="['/home/employee']" class="btn btn-outline-secondary"
+        >Hủy</a
+      >
+      <button
+        type="submit"
+        class="btn btn-success"
+        [disabled]="employeeUpdateForm.invalid"
+      >
+        Cập nhật
+      </button>
+    </div>
+  </div>
+</form>

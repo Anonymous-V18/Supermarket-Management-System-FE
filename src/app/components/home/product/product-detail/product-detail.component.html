@@ -1,1 +1,180 @@
-<p>product-detail works!</p>
+<form [formGroup]="productUpdateForm" (ngSubmit)="onSubmit()">
+  <div class="row gx-3">
+    <div class="col-xxl-12">
+      <div class="card mb-3">
+        <div class="card-header">
+          <h1 class="card-title">Thông tin sản phẩm</h1>
+        </div>
+        <div class="card-body">
+          <!-- Row start -->
+          <div class="row gx-3">
+            <div class="col-lg-6 col-sm-8 col-12">
+              <div class="mb-3 form-group">
+                <label class="form-label">Tên sản phẩm</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  formControlName="name"
+                />
+              </div>
+            </div>
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <label class="form-label">Thời gian bảo hành (tháng)</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  formControlName="warranty"
+                />
+              </div>
+            </div>
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <label class="form-label">VAT (%)</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  formControlName="vat"
+                />
+              </div>
+            </div>
+            <!-- <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <div class="mb-3 form-group">
+                  <label class="form-label">Hình ảnh</label>
+                  <input
+                    type="image"
+                    class="form-control"
+                    formControlName="image"
+                  />
+                </div>
+              </div>
+            </div> -->
+          </div>
+          <!-- Row end -->
+          <!-- Row start -->
+          <div class="row gx-3">
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <div class="mb-3 form-group">
+                  <label class="form-label">Loại sản phẩm</label>
+                  <select
+                    class="form-select"
+                    formControlName="productCategoryId"
+                  >
+                    @for (productCategory of productCategoryDTOs; track
+                    productCategory) {
+                    @if(this.productUpdateForm.value.productCategoryId ==
+                    productCategory.id) {
+                    <option value="{{ productCategory.id }}" selected>
+                      {{ productCategory.name }}
+                    </option>
+                    } @else {
+                    <option value="{{ productCategory.id }}">
+                      {{ productCategory.name }}
+                    </option>
+                    } }
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <div class="mb-3 form-group">
+                  <label class="form-label">Nhà cung cấp chính</label>
+                  <select class="form-select" formControlName="supplierId">
+                    @for (supplier of supplierDTOs; track supplier) {
+                    @if(this.productUpdateForm.value.supplierId == supplier.id)
+                    {
+                    <option value="{{ supplier.id }}" selected>
+                      {{ supplier.name }}
+                    </option>
+                    } @else {
+                    <option value="{{ supplier.id }}">
+                      {{ supplier.name }}
+                    </option>
+                    } }
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <div class="mb-3 form-group">
+                  <label class="form-label">Đơn vị tính</label>
+                  <select class="form-select" formControlName="unitId">
+                    @for (unit of unitDTOs; track unit) {
+                    @if(this.productUpdateForm.value.unitId == unit.id) {
+                    <option value="{{ unit.id }}" selected>
+                      {{ unit.name }}
+                    </option>
+                    } @else {
+                    <option value="{{ unit.id }}">{{ unit.name }}</option>
+                    } }
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-sm-4 col-12">
+              <div class="mb-3 form-group">
+                <div class="mb-3 form-group">
+                  <label class="form-label">Hãng sản xuất</label>
+                  <select class="form-select" formControlName="brandId">
+                    @for (brand of brandDTOs; track brand) {
+                    @if(this.productUpdateForm.value.brandId == brand.id) {
+                    <option value="{{ brand.id }}" selected>
+                      {{ brand.name }}
+                    </option>
+                    } @else {
+                    <option value="{{ brand.id }}">{{ brand.name }}</option>
+                    } }
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Row end -->
+          <!-- Row start -->
+          <div class="row gx-3">
+            <div class="col-lg-6 col-sm-8 col-12">
+              <div class="mb-3 form-group">
+                <label class="form-label">Mô tả ngắn</label>
+                <input class="form-control" formControlName="description" />
+              </div>
+            </div>
+          </div>
+          <!-- Row end -->
+          <!-- Row start -->
+          <div class="row gx-3">
+            <div class="col-lg-6 col-sm-8 col-12">
+              <div class="mb-3 form-group">
+                <label class="form-label">Thông tin bổ sung</label>
+                <textarea
+                  class="form-control"
+                  formControlName="details"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+          <!-- Row end -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <div class="d-flex gap-2 justify-content-end form-group">
+      <a [routerLink]="['/home/product']" class="btn btn-outline-secondary"
+        >Hủy</a
+      >
+      <button
+        type="submit"
+        class="btn btn-success"
+        [disabled]="productUpdateForm.invalid"
+        [hidden]="!hasRole(['STOREKEEPER', 'ADMIN'])"
+      >
+        Cập nhật
+      </button>
+    </div>
+  </div>
+</form>

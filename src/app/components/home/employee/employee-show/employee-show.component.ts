@@ -1,12 +1,14 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { EmployeeService } from '../../../../services/employee.service';
-import { EmployeeDTOResponse } from '../../../../dtos/response/employees/employee.dto';
 import { ApiResponse } from '../../../../dtos/response/api-response/api-response.dto';
+import { EmployeeDTOResponse } from '../../../../dtos/response/employees/employee.dto';
+import { EmployeeService } from '../../../../services/employee.service';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-employee-show',
-  imports: [],
+  imports: [RouterLink, DatePipe],
   templateUrl: './employee-show.component.html',
   styleUrl: './employee-show.component.css',
 })
@@ -22,6 +24,10 @@ export class EmployeeShowComponent implements OnInit {
   employeeDTOs!: EmployeeDTOResponse[];
 
   ngOnInit(): void {
+    this.getAllNoParam();
+  }
+
+  getAllNoParam() {
     this.employeeService.showAllNoParam().subscribe({
       next: (response: ApiResponse<EmployeeDTOResponse[]>) => {
         this.employeeDTOs = response.result;
@@ -36,5 +42,4 @@ export class EmployeeShowComponent implements OnInit {
       },
     });
   }
-
 }

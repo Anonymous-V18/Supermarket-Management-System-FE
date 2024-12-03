@@ -3,10 +3,10 @@
     <div class="card mb-4">
       <div class="card-header">
         <h1 class="card-title">Danh sách sản phẩm</h1>
-        <!-- <br />
-        <a href="#" class="btn btn-primary"
+        <br />
+        <a [routerLink]="['/home/product/create']" class="btn btn-primary" [hidden]="!hasRole(['STOREKEEPER','ADMIN'])"
           ><i class="bi bi-plus-square"></i>&nbsp;&nbsp;Thêm sản phẩm</a
-        > -->
+        >
       </div>
       <div class="card-body">
         <div class="border border-dark rounded-3 table-responsive">
@@ -26,7 +26,14 @@
               @for (product of productDTOs; track $index) {
               <tr>
                 <td>
-                  <a><i class="bi bi-info-circle-fill"></i></a>
+                  <a
+                    [routerLink]="['/home/product/detail']"
+                    [queryParams]="{ productId: product.id }"
+                    ><i
+                      class="bi bi-info-circle-fill"
+                      style="cursor: pointer"
+                    ></i
+                  ></a>
                 </td>
                 <td id="productId">{{ product.id }}</td>
                 <td>{{ product.name }}</td>

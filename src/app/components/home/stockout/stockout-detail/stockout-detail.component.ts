@@ -30,8 +30,8 @@ import { StockoutService } from '../../../../services/stockout.service';
 export class StockoutDetailComponent implements OnInit {
   private formBuilder = inject(FormBuilder);
   stockOutUpdateForm = this.formBuilder.group({
-    totalProduct: ['', [Validators.required, Validators.min(1)]],
-    totalPrice: ['', [Validators.required, Validators.min(1)]],
+    totalProduct: ['', [Validators.required, Validators.min(0)]],
+    totalPrice: ['', [Validators.required, Validators.min(0)]],
     stockOutDate: ['', [Validators.required]],
     statusInvoiceId: ['', [Validators.required]],
     reason: ['', [Validators.required]],
@@ -74,11 +74,8 @@ export class StockoutDetailComponent implements OnInit {
   ngOnInit(): void {
     this.activeRouter.queryParams.subscribe((params: any) => {
       this.stockOutId = params['stockOutId'];
-      this.getDetail(this.stockOutId);
+      this.getDetail();
     });
-    this.getAllStatusInvoice();
-    this.getAllProduct();
-    this.getAllCustomer();
   }
 
   onSubmit() {
@@ -104,13 +101,16 @@ export class StockoutDetailComponent implements OnInit {
       });
   }
 
-  getDetail(stockOutId: string): void {
-    this.stockoutService.getDetail(stockOutId).subscribe({
+  getDetail(): void {
+    this.stockoutService.getDetail(this.stockOutId).subscribe({
       next: (response: ApiResponse<StockoutDTOResponse>) => {
         this.stockOutDTO = response.result;
       },
       complete: () => {
         this.mappingDataFromDTOResponse();
+        this.getAllStatusInvoice();
+        this.getAllProduct();
+        this.getAllCustomer();
       },
       error: (error: any) => {
         this.toastrService.error(

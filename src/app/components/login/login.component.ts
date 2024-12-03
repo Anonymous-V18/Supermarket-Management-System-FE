@@ -4,8 +4,9 @@ import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { LoginDTORequest } from '../../dtos/request/users/login.dto';
 import { ApiResponse } from '../../dtos/response/api-response/api-response.dto';
-import { TokenDTOResponse } from '../../dtos/response/tokens/token.dto';
+import { AuthDTOResponse } from '../../dtos/response/auth/auth.dto';
 import { CONSTANT } from '../../environments/constant';
+import { LocalStorageService } from '../../services/local-storage.service';
 import { LoginService } from '../../services/login.service';
 import { TokenService } from '../../services/token.service';
 
@@ -23,9 +24,10 @@ export class LoginComponent {
   });
   private router = inject(Router);
   private tokenService = inject(TokenService);
-  private toastService = inject(ToastrService);
   private loginService = inject(LoginService);
   private loginDTORequest!: LoginDTORequest;
+  private localStorageService = inject(LocalStorageService);
+  private toastService = inject(ToastrService);
   private toastrConfig = {
     timeOut: 3000,
     progressBar: true,
@@ -38,12 +40,32 @@ export class LoginComponent {
       ...this.loginForm.value,
     };
     this.loginService.login(this.loginDTORequest).subscribe({
-      next: (response: ApiResponse<TokenDTOResponse>) => {
-        var tokenDTOResponse: TokenDTOResponse = response.result;
+      next: (response: ApiResponse<AuthDTOResponse>) => {
+        var authDTOResponse: AuthDTOResponse = response.result;
         this.tokenService.setToken(
           CONSTANT.ACCESS_TOKEN_NAME_KEY,
-          tokenDTOResponse.accessToken
+          authDTOResponse.accessToken
         );
+        if (authDTOResponse.employee) {
+          this.localStorageService.set(
+            'username',
+            response.result.employee.user.username
+          );
+          this.localStorageService.set('name', response.result.employee.name);
+          this.localStorageService.set(
+            'roles',
+            response.result.employee.user.roles
+              .map((role) => role.code)
+              .join(',')
+          );
+        } else {
+          this.toastService.error(
+            "Employee isn't found !",
+            'Error !',
+            this.toastrConfig
+          );
+          return;
+        }
         this.toastService.success(
           'Đăng nhập thành công !',
           'Successfully !',

@@ -1,12 +1,12 @@
 export class ProductCategoryDTOResponse {
-  id: number;
+  id: string;
   name: string;
   code: string;
 
-  constructor(id: number, name: string, code: string) {
+  constructor(id: string, name: string, code: string) {
     this.id = id;
     this.name = name;
     this.code = code;
   }
-  
+
 }
