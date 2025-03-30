@@ -35,7 +35,7 @@ export class WarehouseCreateComponent implements OnInit {
       cityId: ['', Validators.required],
       districtId: ['', Validators.required],
       wardId: ['', Validators.required],
-      street: ['', Validators.required, Validators.minLength(5)],
+      street: ['', [Validators.required, Validators.minLength(5)]],
     }),
   });
   private toastrService = inject(ToastrService);

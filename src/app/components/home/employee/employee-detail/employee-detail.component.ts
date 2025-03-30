@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { ToastrService } from 'ngx-toastr';
@@ -60,7 +60,7 @@ export class EmployeeDetailComponent {
   private districtService = inject(DistrictService);
   private wardService = inject(WardService);
   private roleService = inject(RoleService);
-  private postionService = inject(PositionService);
+  private positionService = inject(PositionService);
   cityDTOs!: CityDTOResponse[];
   districtDTOs!: DistrictDTOResponse[];
   wardDTOs!: WardDTOResponse[];
@@ -117,6 +117,10 @@ export class EmployeeDetailComponent {
         );
       },
     });
+  }
+
+  getCurrentAddress(): FormGroup {
+    return this.employeeUpdateForm?.get('currentAddress') as FormGroup;
   }
 
   getAllCity() {
@@ -192,7 +196,7 @@ export class EmployeeDetailComponent {
   }
 
   getAllPosition() {
-    this.postionService.showAllNoParam().subscribe({
+    this.positionService.showAllNoParam().subscribe({
       next: (response: ApiResponse<PositionDTOResponse[]>) => {
         this.positionDTOs = response.result;
       },

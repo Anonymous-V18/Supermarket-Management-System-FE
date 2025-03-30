@@ -32,7 +32,7 @@
               "public/assets/css/main.min.css",
               "public/assets/vendor/overlay-scroll/OverlayScrollbars.min.css",
               "public/assets/css/custom.css",
-               "node_modules/@ng-select/ng-select/themes/default.theme.css",
+              "node_modules/@ng-select/ng-select/themes/default.theme.css"
             ],
             "scripts": [
               "public/assets/js/jquery.min.js",

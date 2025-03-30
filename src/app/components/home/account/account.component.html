@@ -16,7 +16,7 @@
                 aria-selected="true"
                 [routerLink]="['account-info']"
                 routerLinkActive="active"
-                [hidden]="hasRole(['ADMIN'])"
+                [hidden]="hasSystemAdmin()"
                 >Thông tin cá nhân</a
               >
             </li>

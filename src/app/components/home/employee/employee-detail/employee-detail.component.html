@@ -65,10 +65,15 @@
                   <label class="form-label">Vị trí làm việc</label>
                   <select class="form-select" formControlName="positionId">
                     @for (position of positionDTOs; track position) {
+                    @if(position.id === employeeUpdateForm.value.positionId) {
+                    <option value="{{ position.id }}" selected>
+                      {{ position.name }}
+                    </option>
+                    } @else {
                     <option value="{{ position.id }}">
                       {{ position.name }}
                     </option>
-                    }
+                    } }
                   </select>
                 </div>
               </div>
@@ -101,11 +106,16 @@
                     formControlName="cityId"
                     (change)="getAllDistrictByCity()"
                   >
-                    @for (city of cityDTOs; track city) {
+                    @for (city of cityDTOs; track city) { @if(city.id ==
+                    this.getCurrentAddress().value.cityId){
+                    <option value="{{ city.id }}" selected>
+                      {{ city.name }}
+                    </option>
+                    } @else {
                     <option value="{{ city.id }}">
                       {{ city.name }}
                     </option>
-                    }
+                    } }
                   </select>
                 </div>
               </div>
@@ -120,10 +130,16 @@
                     (change)="getAllWardByDistrict()"
                   >
                     @for (district of districtDTOs; track district) {
+                    @if(district.id ==
+                    this.getCurrentAddress().value.districtId){
+                    <option value="{{ district.id }}" selected>
+                      {{ district.name }}
+                    </option>
+                    } @else {
                     <option value="{{ district.id }}">
                       {{ district.name }}
                     </option>
-                    }
+                    } }
                   </select>
                 </div>
               </div>
@@ -133,9 +149,14 @@
                 <div class="mb-3 form-group">
                   <label class="form-label">Phường \ Xã</label>
                   <select class="form-select" formControlName="wardId">
-                    @for (ward of wardDTOs; track ward) {
+                    @for (ward of wardDTOs; track ward) { @if(ward.id ==
+                    this.getCurrentAddress().value.wardId){
+                    <option value="{{ ward.id }}" selected>
+                      {{ ward.name }}
+                    </option>
+                    } @else {
                     <option value="{{ ward.id }}">{{ ward.name }}</option>
-                    }
+                    }}
                   </select>
                 </div>
               </div>

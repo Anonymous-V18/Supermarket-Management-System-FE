@@ -14,4 +14,8 @@ export class AccountComponent {
   hasRole(roleCode: string[]): boolean {
     return this.roleService.hasRole(roleCode);
   }
+
+  hasSystemAdmin(): boolean {
+    return this.roleService.hasSystemAdmin();
+  }
 }
