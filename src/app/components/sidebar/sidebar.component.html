@@ -95,6 +95,13 @@
           <span class="menu-text">Tài khoản</span>
         </a>
       </li>
+      <li [hidden]="!hasRole(['ADMIN', 'SUPER_ADMIN'])">
+        <a href="http://localhost:4201" target="_blank" rel="noopener noreferrer">
+          <i class="fa fa-shield-halved"></i>
+          <span class="menu-text">Identity & IAM</span>
+          <span class="badge border border-primary text-primary rounded-5 ms-2">SSO</span>
+        </a>
+      </li>
     </ul>
   </div>
   <!-- Sidebar menu ends -->

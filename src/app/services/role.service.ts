@@ -35,18 +35,22 @@ export class RoleService {
   }
 
   hasRole(roleCodes: string[]): boolean {
-    var roles: string[] =
+    const roles: string[] =
       this.localStorageService.get('roles')?.split(',') ?? [];
+    if (roles.includes('SUPER_ADMIN')) {
+      return true;
+    }
     return roles.some((role) => roleCodes.includes(role));
   }
 
   hasSystemAdmin(): boolean {
-    var roles: string[] =
+    const roles: string[] =
       this.localStorageService.get('roles')?.split(',') ?? [];
-    var username: string = this.localStorageService.get('username') ?? '';
+    const username: string = this.localStorageService.get('username') ?? '';
     return (
-      roles.some((role) => role === 'ADMIN') &&
-      username === this.usernameSystemAdmin
+      roles.includes('SUPER_ADMIN') ||
+      (roles.some((role) => role === 'ADMIN') &&
+        username === this.usernameSystemAdmin)
     );
   }
 }
