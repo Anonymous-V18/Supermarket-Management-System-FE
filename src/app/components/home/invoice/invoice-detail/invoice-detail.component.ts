@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormArray,
@@ -23,7 +23,7 @@ import { InvoiceService } from './../../../../services/invoice.service';
 
 @Component({
   selector: 'app-invoice-detail',
-  imports: [RouterLink, ReactiveFormsModule],
+  imports: [RouterLink, ReactiveFormsModule, DecimalPipe],
   templateUrl: './invoice-detail.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './invoice-detail.component.css',

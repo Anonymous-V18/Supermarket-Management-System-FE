@@ -1,23 +1,32 @@
-<nav id="sidebar" class="sidebar-wrapper">
+<nav
+  id="sidebar"
+  class="sidebar-wrapper"
+  (mouseenter)="layoutService.setHovered(true)"
+  (mouseleave)="layoutService.setHovered(false)"
+>
   <!-- App brand starts -->
   <div class="app-brand px-3 py-2 d-flex align-items-center">
-    <a href="index.html">
+    <a [routerLink]="['/home/dashboard']">
       <img
         src="assets/images/anonymous-logo-1.png"
-        class="logo"
-        style="max-width: 300px; width: 210px; max-height: 40px"
-        alt="Bootstrap Gallery"
+        class="logo sidebar-logo"
+        alt="Anonymous"
+      />
+      <img
+        src="assets/images/anonymous-logo-2.png"
+        class="sidebar-logo-sm"
+        alt="Anonymous"
       />
     </a>
   </div>
   <!-- App brand ends -->
   <!-- Sidebar menu starts -->
-  <div class="sidebarMenuScroll" ngSkipHydration>
+  <div class="sidebarMenuScroll">
     <ul class="sidebar-menu">
       <li routerLinkActive="active current-page">
         <a [routerLink]="['/home/dashboard']">
           <i class="fa fa-home"></i>
-          <span class="menu-text">Giới thiệu</span>
+          <span class="menu-text">Trang chính</span>
         </a>
       </li>
       <li routerLinkActive="active current-page" [hidden]="!hasRole(['ADMIN'])">
@@ -80,8 +89,8 @@
           <span class="menu-text">Bán hàng</span>
         </a>
       </li>
-      <li>
-        <a>
+      <li class="menu-disabled">
+        <a aria-disabled="true">
           <i class="fa fa-tags"></i>
           <span class="menu-text">Khuyến mãi</span>
           <span class="badge border border-danger text-danger rounded-5 ms-2"

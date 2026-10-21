@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormArray,
@@ -19,7 +19,7 @@ import { StockinService } from './../../../../services/stockin.service';
 
 @Component({
   selector: 'app-stockin-detail',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, DecimalPipe],
   templateUrl: './stockin-detail.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './stockin-detail.component.css',

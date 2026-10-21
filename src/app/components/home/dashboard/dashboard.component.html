@@ -1,6 +1,110 @@
-<div class="d-flex flex-column justify-content-center align-items-center">
-  <img src="assets/images/anonymous-logo-2.png" />
-  <h1 class="card-title text-center" style="font-family: Chewy">
-    Welcome to Supermarket Management System !
-  </h1>
+<div class="dashboard">
+  <!-- Shift header -->
+  <section class="card shift-card mb-3">
+    <div class="card-body">
+      <div class="shift-info">
+        <p class="text-secondary mb-1">{{ greeting() }},</p>
+        <h1 class="h3 fw-bold mb-2 text-break">
+          {{ name || username }}
+        </h1>
+        <div class="d-flex flex-wrap gap-2">
+          @for (role of roleLabels; track role) {
+          <span class="badge rounded-pill shift-badge">{{ role }}</span>
+          }
+          <span class="badge rounded-pill shift-badge shift-badge-time">
+            <i class="bi bi-clock me-1"></i>{{ shift().name }}
+          </span>
+        </div>
+      </div>
+      <div class="shift-clock" aria-live="off">
+        <div class="clock-time">{{ now() | date: "HH:mm" }}</div>
+        <div class="text-secondary text-capitalize">
+          {{ now() | date: "EEEE, dd/MM/yyyy" }}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="row g-3">
+    <!-- Quick actions -->
+    <div class="col-xl-8 col-12">
+      @if (primaryActions.length) {
+      <div class="primary-actions mb-3">
+        @for (action of primaryActions; track action.label) {
+        <a [routerLink]="action.link" class="action-primary">
+          <i class="bi {{ action.icon }}"></i>
+          <span class="flex-grow-1">
+            <span class="d-block fs-5 fw-bold">{{ action.label }}</span>
+            <span class="d-block opacity-75">{{ action.hint }}</span>
+          </span>
+          @if (action.shortcut) {
+          <kbd class="d-none d-md-inline-block">{{ action.shortcut }}</kbd>
+          }
+        </a>
+        }
+      </div>
+      }
+
+      <h2 class="h6 text-secondary text-uppercase fw-semibold mb-2">
+        Thao tác nhanh
+      </h2>
+      <div class="action-grid">
+        @for (action of otherActions; track action.label) {
+        <a [routerLink]="action.link" class="action-tile">
+          <i class="bi {{ action.icon }}"></i>
+          <span class="fw-semibold">{{ action.label }}</span>
+          <small class="text-secondary">{{ action.hint }}</small>
+        </a>
+        }
+      </div>
+    </div>
+
+    <!-- Shift checklist -->
+    <div class="col-xl-4 col-12">
+      <section class="card h-100">
+        <div class="card-header">
+          <h2 class="card-title h5 mb-2">Việc cần làm trong ca</h2>
+          <div
+            class="progress"
+            role="progressbar"
+            aria-label="Tiến độ công việc trong ca"
+            [attr.aria-valuenow]="progress()"
+            aria-valuemin="0"
+            aria-valuemax="100"
+          >
+            <div class="progress-bar bg-success" [style.width.%]="progress()"></div>
+          </div>
+        </div>
+        <div class="card-body pt-2">
+          <h3 class="checklist-title">Đầu ca</h3>
+          @for (item of startItems; track item.id) {
+          <label class="check-item">
+            <input
+              type="checkbox"
+              class="form-check-input"
+              [checked]="checked().has(item.id)"
+              (change)="toggle(item.id)"
+            />
+            <span>{{ item.label }}</span>
+          </label>
+          }
+          <h3 class="checklist-title mt-3">Cuối ca</h3>
+          @for (item of endItems; track item.id) {
+          <label class="check-item">
+            <input
+              type="checkbox"
+              class="form-check-input"
+              [checked]="checked().has(item.id)"
+              (change)="toggle(item.id)"
+            />
+            <span>{{ item.label }}</span>
+          </label>
+          }
+          <p class="small text-secondary mt-3 mb-0">
+            Danh sách được lưu trên máy này và tự làm mới khi sang ca mới.
+          </p>
+        </div>
+      </section>
+    </div>
+  </div>
 </div>

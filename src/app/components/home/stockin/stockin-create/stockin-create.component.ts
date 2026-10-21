@@ -1,3 +1,4 @@
+import { DecimalPipe } from '@angular/common';
 import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormArray,
@@ -21,7 +22,7 @@ import { WarehouseService } from './../../../../services/warehouse.service';
 
 @Component({
   selector: 'app-stockin-create',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, DecimalPipe],
   templateUrl: './stockin-create.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './stockin-create.component.css',

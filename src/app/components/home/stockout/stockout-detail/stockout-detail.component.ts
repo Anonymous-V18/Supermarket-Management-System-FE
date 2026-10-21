@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormArray,
@@ -23,7 +23,7 @@ import { StockoutService } from '../../../../services/stockout.service';
 
 @Component({
   selector: 'app-stockout-detail',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, DecimalPipe],
   templateUrl: './stockout-detail.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './stockout-detail.component.css',

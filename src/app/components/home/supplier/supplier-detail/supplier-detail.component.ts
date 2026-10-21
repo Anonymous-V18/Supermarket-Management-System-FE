@@ -190,7 +190,7 @@ export class SupplierDetailComponent {
       moreInfo: this.supplierDTO.moreInfo,
       contactDate: this.datePipe.transform(
         this.supplierDTO.contactDate,
-        'yyyy-MM-ddTHH:mm'
+        'yyyy-MM-dd'
       ),
       phoneNumber: this.supplierDTO.phoneNumber,
       email: this.supplierDTO.email,

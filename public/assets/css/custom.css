@@ -1,0 +1,318 @@
+/* ==========================================================
+   Project overrides — loaded after main.min.css (see angular.json)
+   ========================================================== */
+
+/* ---------- Layout ---------- */
+
+/* dvh keeps the footer visible on mobile browsers whose toolbar
+   changes the viewport height; vh is the fallback. */
+.app-body {
+  height: calc(100vh - 108px);
+  height: calc(100dvh - 108px);
+}
+
+.app-header {
+  min-height: 64px;
+  gap: 0.25rem;
+}
+
+.header-user-name {
+  max-width: 220px;
+}
+
+.sidebar-logo {
+  width: 210px;
+  max-width: 100%;
+  max-height: 40px;
+  object-fit: contain;
+}
+
+.sidebar-logo-sm {
+  display: none;
+  width: 40px;
+  height: 40px;
+}
+
+/* Collapsed (pinned) sidebar on desktop: icon-only. */
+@media (min-width: 768px) {
+  .page-wrapper.pinned:not(.sidebar-hovered) .sidebar-logo {
+    display: none;
+  }
+  .page-wrapper.pinned:not(.sidebar-hovered) .sidebar-logo-sm {
+    display: block;
+  }
+  .page-wrapper.pinned:not(.sidebar-hovered) .app-brand {
+    justify-content: center;
+  }
+  .page-wrapper.pinned:not(.sidebar-hovered) .sidebar-menu .badge {
+    display: none;
+  }
+}
+
+.sidebarMenuScroll {
+  height: calc(100vh - 70px);
+  height: calc(100dvh - 70px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.sidebar-menu > li.menu-disabled > a {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sidebar-wrapper {
+    z-index: 1045;
+  }
+
+  /* Drawer open: dim the page and let a tap outside close it. */
+  .page-wrapper.toggled .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    background: rgba(17, 20, 24, 0.45);
+  }
+
+  /* The theme moves the toggle button next to the open drawer;
+     keep it inside the header instead (the icon becomes an X). */
+  .page-wrapper.toggled .toggle-sidebar {
+    position: static !important;
+  }
+
+  .app-header {
+    padding: 0 0.75rem;
+  }
+
+  .app-body {
+    padding: 0.75rem 0.25rem;
+  }
+
+  .app-footer {
+    padding: 0.5rem 0.75rem;
+    text-align: center;
+  }
+}
+
+/* ---------- Cards & headings ---------- */
+
+.card-header h1.card-title {
+  font-size: clamp(1.15rem, 1rem + 0.8vw, 1.6rem);
+}
+
+.card-header h3.card-title,
+.card-header h4.card-title {
+  font-size: clamp(1rem, 0.95rem + 0.4vw, 1.25rem);
+}
+
+.card-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+/* ---------- Tables ---------- */
+
+.table > thead th {
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Inputs inside editable tables (invoice / stock lines) must not
+   collapse to a few pixels on narrow screens. */
+.table td > .form-control,
+.table td > .form-select {
+  min-width: 140px;
+}
+
+.table td > .form-control[type="number"] {
+  min-width: 110px;
+}
+
+.table td .bi-trash-fill {
+  color: var(--bs-danger);
+  font-size: 1.1rem;
+  padding: 0.5rem;
+}
+
+/* ---------- Data entry forms ---------- */
+
+/* Fields are grouped into titled sections inside one card. */
+.form-section + .form-section {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e8ebf4;
+}
+
+.form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #28256d;
+}
+
+.form-section-title .bi {
+  color: #3659cd;
+}
+
+.form-label {
+  font-weight: 500;
+}
+
+.form-label.required::after {
+  content: " *";
+  color: var(--bs-danger);
+}
+
+.form-required-note {
+  font-size: 0.8rem;
+  color: #6e7985;
+}
+
+/* Line items (invoice / stock-in / stock-out products) */
+.line-items {
+  /* Containing block for .visually-hidden headers, so they cannot
+     escape the horizontal scroll area and widen the page. */
+  position: relative;
+  border: 1px solid #dbe3ea;
+  border-radius: 8px;
+}
+
+.line-items .table {
+  margin: 0;
+}
+
+.line-items .table > thead th {
+  background: #f8f9fc;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #41505f;
+}
+
+.line-items .col-index {
+  width: 48px;
+  text-align: center;
+  color: #6e7985;
+}
+
+.line-items .col-action {
+  width: 64px;
+  text-align: center;
+}
+
+.line-items .col-amount {
+  text-align: end;
+  white-space: nowrap;
+}
+
+.line-items .table td > .form-select {
+  min-width: 180px;
+}
+
+.line-items .table td > .form-control[type="number"] {
+  min-width: 96px;
+  text-align: end;
+}
+
+.line-items .line-empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: #6e7985;
+}
+
+.voucher-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem 2rem;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #f8f9fc;
+}
+
+.voucher-summary dt {
+  font-weight: 500;
+  color: #6e7985;
+}
+
+.voucher-summary dd {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.voucher-summary .summary-total dd {
+  font-size: 1.35rem;
+  color: #28256d;
+}
+
+/* ---------- Form action bar ---------- */
+
+/* Save / cancel bar at the end of create & detail forms stays
+   reachable while scrolling long forms. */
+form > .card-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin: 0 -0.75rem;
+  padding: 0.75rem;
+  background: #fff;
+  border-top: 1px solid #dbe3ea;
+}
+
+@media (max-width: 575.98px) {
+  form > .card-footer {
+    margin: 0 -0.25rem;
+  }
+
+  form > .card-footer .d-flex {
+    flex-direction: column-reverse;
+  }
+
+  form > .card-footer .btn {
+    width: 100%;
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+  }
+
+  .card-header-actions .btn {
+    width: 100%;
+  }
+
+  .nav-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .nav-tabs .nav-link {
+    white-space: nowrap;
+  }
+
+  /* Bootstrap dropdown menus inside the header must fit the screen. */
+  .header-actions .dropdown-menu {
+    max-width: calc(100vw - 1.5rem);
+  }
+}
+
+/* ---------- Touch targets ---------- */
+
+@media (pointer: coarse) {
+  .btn,
+  .form-control,
+  .form-select {
+    min-height: 44px;
+  }
+}

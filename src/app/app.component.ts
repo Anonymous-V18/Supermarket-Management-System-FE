@@ -1,6 +1,5 @@
-import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
-import { LoginService } from './services/login.service';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -9,17 +8,8 @@ import { LoginService } from './services/login.service';
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './app.component.css',
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   title = 'supermarket-management-system-FE';
-
-  private router: Router = inject(Router);
-  private loginService: LoginService = inject(LoginService);
-
-  ngOnInit(): void {
-    if (!this.loginService.isLoggedIn()) {
-      this.router.navigate(['']);
-    } else {
-      this.router.navigate(['/home']);
-    }
-  }
+  // Redirects between /login and /home are handled by AuthGuard / GuestGuard,
+  // so reloading a page keeps the current URL.
 }

@@ -2,41 +2,57 @@
   <!-- Toggle buttons start -->
   <div class="d-flex">
     <button
+      type="button"
       class="btn btn-outline-primary me-2 toggle-sidebar"
       id="toggle-sidebar"
+      aria-label="Mở menu"
+      [attr.aria-expanded]="layoutService.sidebarOpen()"
+      (click)="layoutService.toggleSidebar()"
     >
-      <i class="bi bi-text-indent-left fs-5"></i>
+      <i
+        class="bi fs-5"
+        [class.bi-x-lg]="layoutService.sidebarOpen()"
+        [class.bi-list]="!layoutService.sidebarOpen()"
+      ></i>
     </button>
-    <button class="btn btn-outline-primary me-2 pin-sidebar" id="pin-sidebar">
-      <i class="bi bi-text-indent-left fs-5"></i>
+    <button
+      type="button"
+      class="btn btn-outline-primary me-2 pin-sidebar"
+      id="pin-sidebar"
+      [attr.aria-label]="
+        layoutService.sidebarPinned() ? 'Mở rộng menu' : 'Thu gọn menu'
+      "
+      (click)="layoutService.togglePin()"
+    >
+      <i
+        class="bi fs-5"
+        [class.bi-text-indent-left]="layoutService.sidebarPinned()"
+        [class.bi-text-indent-right]="!layoutService.sidebarPinned()"
+      ></i>
     </button>
   </div>
   <!-- Toggle buttons end -->
 
   <!-- App brand sm start -->
-  <div class="app-brand-sm d-md-none d-sm-block">
-    <a [routerLink]="['/']">
+  <div class="app-brand-sm d-md-none">
+    <a [routerLink]="['/home/dashboard']">
       <img
         src="assets/images/anonymous-logo-2.png"
-        class="rounded-2 img-4x"
-        alt="Anonymous-K13"
+        class="rounded-2 img-3x"
+        alt="Anonymous"
       />
     </a>
   </div>
   <!-- App brand sm end -->
 
-  <!-- Breadcrumb start -->
-  <!-- <ol class="breadcrumb d-none d-lg-flex ms-3">
-    <li class="breadcrumb-item">
-      <i class="bi bi-house lh-1"></i>
-      <a [routerLink]="['/']" class="text-decoration-none">Home</a>
-    </li>
-    <li class="breadcrumb-item text-secondary">Dashboard</li>
-  </ol> -->
-  <!-- Breadcrumb end
-
   <!-- App header actions start -->
   <div class="header-actions">
+    <div class="d-none d-sm-block text-end me-2 lh-sm">
+      <div class="fw-semibold text-truncate header-user-name">
+        {{ this.name }}
+      </div>
+      <small class="text-secondary">{{ this.username }}</small>
+    </div>
     <div class="dropdown ms-2">
       <a
         id="userSettings"
@@ -48,7 +64,7 @@
         <img
           src="assets/images/user.png"
           class="rounded-2 img-3x"
-          alt="Anonymous-V18 Admin"
+          alt="Tài khoản"
         />
       </a>
       <div class="dropdown-menu dropdown-menu-end shadow-sm">
@@ -61,11 +77,15 @@
           [routerLink]="['/home/account']"
           ><i class="bi bi-person fs-4 me-2"></i>Hồ sơ</a
         >
-        <a class="dropdown-item d-flex align-items-center"
-          ><i class="bi bi-gear fs-4 me-2"></i>Cài đặt</a
+        <a
+          class="dropdown-item d-flex align-items-center"
+          [routerLink]="['/home/account/change-password']"
+          ><i class="bi bi-key fs-4 me-2"></i>Đổi mật khẩu</a
         >
         <div class="d-grid p-3 py-2">
-          <a class="btn btn-danger" (click)="logout()">Đăng xuất</a>
+          <button type="button" class="btn btn-danger" (click)="logout()">
+            Đăng xuất
+          </button>
         </div>
       </div>
     </div>

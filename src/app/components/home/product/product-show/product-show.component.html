@@ -1,9 +1,8 @@
 <div class="row">
   <div class="col-12">
     <div class="card mb-4">
-      <div class="card-header">
+      <div class="card-header card-header-actions">
         <h1 class="card-title">Danh sách sản phẩm</h1>
-        <br />
         <a [routerLink]="['/home/product/create']" class="btn btn-primary" [hidden]="!hasRole(['STOREKEEPER','ADMIN'])"
           ><i class="bi bi-plus-square"></i>&nbsp;&nbsp;Thêm sản phẩm</a
         >

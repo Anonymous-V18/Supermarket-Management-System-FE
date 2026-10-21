@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
@@ -8,7 +8,7 @@ import { StockoutService } from '../../../../services/stockout.service';
 
 @Component({
   selector: 'app-stockout-show',
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink, DatePipe, DecimalPipe],
   templateUrl: './stockout-show.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './stockout-show.component.css',

@@ -1,11 +1,10 @@
 <div class="row">
   <div class="col-12">
     <div class="card mb-4">
-      <div class="card-header">
-        <h1 class="card-title">Danh sách hóa đơn nhập kho</h1>
-        <br />
+      <div class="card-header card-header-actions">
+        <h1 class="card-title">Danh sách phiếu nhập kho</h1>
         <a [routerLink]="['/home/stockin/create']" class="btn btn-primary"
-          ><i class="fa fa-square-plus"></i>&nbsp;&nbsp;Thêm hóa đơn nhập kho</a
+          ><i class="fa fa-square-plus"></i>&nbsp;&nbsp;Thêm phiếu nhập kho</a
         >
       </div>
       <div class="card-body">
@@ -14,7 +13,7 @@
             <thead>
               <tr class="text-center">
                 <th>Xem chi tiết</th>
-                <th>Mã hóa đơn</th>
+                <th>Mã phiếu</th>
                 <th>Ngày tạo</th>
                 <th>Tổng sản phẩm</th>
                 <th>Tổng tiền</th>
@@ -36,12 +35,12 @@
                 </td>
                 <td>{{ stockin.id }}</td>
                 <td>
-                  {{ stockin.stockInDate | date : "dd-MM-yyyy HH:mm:ss a" }}
+                  {{ stockin.stockInDate | date : "dd/MM/yyyy HH:mm" }}
                 </td>
                 <td>
                   {{ stockin.totalProduct }}
                 </td>
-                <td>{{ stockin.totalPrice }}</td>
+                <td class="text-nowrap">{{ stockin.totalPrice | number: '1.0-0' }} ₫</td>
                 <td>
                   @switch (stockin.statusInvoice.code) { @case ('NOT_PAID') {
                   <span class="badge border border-warning text-warning">
@@ -61,7 +60,7 @@
               }@empty {
               <tr>
                 <td colspan="6" class="text-center">
-                  <b>Hiện không có hóa đơn nhập kho nào trong hệ thống !</b>
+                  <b>Hiện không có phiếu nhập kho nào trong hệ thống !</b>
                 </td>
               </tr>
               }

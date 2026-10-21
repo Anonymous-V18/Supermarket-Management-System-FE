@@ -1,3 +1,4 @@
+import { DecimalPipe } from '@angular/common';
 import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormArray,
@@ -23,7 +24,7 @@ import { ProductCommonDetailDTOResponse } from './../../../../dtos/response/prod
 
 @Component({
   selector: 'app-stockout-create',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, DecimalPipe],
   templateUrl: './stockout-create.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './stockout-create.component.css',

@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { LayoutService } from '../../services/layout.service';
 import { LogoutService } from '../../services/logout.service';
 import { TokenService } from '../../services/token.service';
 import { LocalStorageService } from './../../services/local-storage.service';
@@ -18,6 +19,7 @@ export class HeaderComponent implements OnInit {
   private localStorageService = inject(LocalStorageService);
   private router = inject(Router);
   private toastrService = inject(ToastrService);
+  layoutService = inject(LayoutService);
   private toastrConfig = {
     timeOut: 3000,
     closeButton: true,
@@ -38,7 +40,7 @@ export class HeaderComponent implements OnInit {
         this.tokenService.clearToken();
         this.router.navigate(['']);
         this.toastrService.success(
-          'Logout successfully !',
+          'Đăng xuất thành công !',
           'Success !',
           this.toastrConfig
         );

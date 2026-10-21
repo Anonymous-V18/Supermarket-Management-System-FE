@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
@@ -8,7 +8,7 @@ import { StockinService } from '../../../../services/stockin.service';
 
 @Component({
   selector: 'app-stockin-show',
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink, DatePipe, DecimalPipe],
   templateUrl: './stockin-show.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './stockin-show.component.css',

@@ -1,0 +1,22 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #f5f6fa;
+}
+
+.login-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-card {
+  box-shadow: 0 10px 30px -15px rgba(40, 37, 109, 0.25);
+}
+
+.login-logo {
+  width: 260px;
+}

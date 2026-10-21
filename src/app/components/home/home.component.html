@@ -1,7 +1,19 @@
-<div class="page-wrapper">
+<div
+  class="page-wrapper"
+  [class.toggled]="layoutService.sidebarOpen()"
+  [class.pinned]="layoutService.sidebarPinned()"
+  [class.sidebar-hovered]="layoutService.sidebarHovered()"
+>
   <!-- Main container start -->
   <div class="main-container">
     <app-sidebar></app-sidebar>
+
+    <!-- Mobile backdrop: closes the sidebar drawer when tapped -->
+    <div
+      class="sidebar-backdrop"
+      (click)="layoutService.closeSidebar()"
+      aria-hidden="true"
+    ></div>
 
     <!-- App container starts -->
     <div class="app-container">
@@ -11,7 +23,11 @@
       <div class="app-body">
         <!-- Container starts -->
         <div class="container-fluid">
+          <!-- Pages need the token from localStorage, so they are only
+               rendered in the browser; SSR outputs the layout shell. -->
+          @if (isBrowserReady()) {
           <router-outlet />
+          }
         </div>
         <!-- Container ends -->
       </div>

@@ -224,7 +224,7 @@ export class AccountInfoComponent {
       phoneNumber: this.employeeDTO.phoneNumber,
       email: this.employeeDTO.email,
       positionId: this.employeeDTO.position.id,
-      dob: this.datePipe.transform(this.employeeDTO.dob, 'yyyy-MM-ddTHH:mm:ss'),
+      dob: this.datePipe.transform(this.employeeDTO.dob, 'yyyy-MM-dd'),
       currentAddress: {
         id: this.employeeDTO.address?.id ?? '',
         cityId: this.employeeDTO.address?.district.city.id ?? '',

@@ -1,7 +1,12 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import {
+  ApplicationConfig,
+  LOCALE_ID,
+  provideZoneChangeDetection,
+} from '@angular/core';
 import { provideRouter } from '@angular/router';
 
-import { DatePipe } from '@angular/common';
+import { DatePipe, registerLocaleData } from '@angular/common';
+import localeVi from '@angular/common/locales/vi';
 import {
   provideHttpClient,
   withFetch,
@@ -13,6 +18,9 @@ import { provideToastr } from 'ngx-toastr';
 import { routes } from './app.routes';
 import { TokenInterceptor } from './interceptors/token.interceptor';
 
+// Vietnamese number / date formatting (36.000 ₫, "Thứ Tư") for all pipes.
+registerLocaleData(localeVi);
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
@@ -22,5 +30,6 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     provideToastr(),
     DatePipe,
+    { provide: LOCALE_ID, useValue: 'vi' },
   ],
 };

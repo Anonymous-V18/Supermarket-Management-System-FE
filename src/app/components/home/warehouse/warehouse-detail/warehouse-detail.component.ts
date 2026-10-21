@@ -192,7 +192,7 @@ export class WarehouseDetailComponent implements OnInit {
       moreInfo: this.warehouseDTO.moreInfo,
       establishDate: this.datePipe.transform(
         this.warehouseDTO.establishDate,
-        'yyyy-MM-ddTHH:mm'
+        'yyyy-MM-dd'
       ),
       phoneNumber: this.warehouseDTO.phoneNumber,
       email: this.warehouseDTO.email,

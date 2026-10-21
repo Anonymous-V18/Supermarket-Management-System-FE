@@ -1,3 +1,4 @@
+import { DecimalPipe } from '@angular/common';
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormArray,
@@ -24,7 +25,7 @@ import { WarehouseService } from '../../../../services/warehouse.service';
 @Component({
   selector: 'app-invoice-create',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule],
+  imports: [RouterLink, ReactiveFormsModule, DecimalPipe],
   templateUrl: './invoice-create.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './invoice-create.component.css',

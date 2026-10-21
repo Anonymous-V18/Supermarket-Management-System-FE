@@ -1,11 +1,10 @@
 <div class="row">
   <div class="col-12">
     <div class="card mb-4">
-      <div class="card-header">
-        <h1 class="card-title">Danh sách hóa đơn xuất kho</h1>
-        <br />
+      <div class="card-header card-header-actions">
+        <h1 class="card-title">Danh sách phiếu xuất kho</h1>
         <a [routerLink]="['/home/stockout/create']" class="btn btn-primary"
-          ><i class="bi bi-plus-square"></i>&nbsp;&nbsp;Thêm hóa đơn xuất kho</a
+          ><i class="bi bi-plus-square"></i>&nbsp;&nbsp;Thêm phiếu xuất kho</a
         >
       </div>
       <div class="card-body">
@@ -14,7 +13,7 @@
             <thead>
               <tr class="text-center">
                 <th>Xem chi tiết</th>
-                <th>Mã hóa đơn</th>
+                <th>Mã phiếu</th>
                 <th>Ngày tạo</th>
                 <th>Tổng sản phẩm</th>
                 <th>Tổng tiền</th>
@@ -36,12 +35,12 @@
                 </td>
                 <td id="stockoutId">{{ stockout.id }}</td>
                 <td>
-                  {{ stockout.stockOutDate | date : "dd-MM-yyyy HH:mm:ss a" }}
+                  {{ stockout.stockOutDate | date : "dd/MM/yyyy HH:mm" }}
                 </td>
                 <td>
                   {{ stockout.totalProduct }}
                 </td>
-                <td>{{ stockout.totalPrice }}</td>
+                <td class="text-nowrap">{{ stockout.totalPrice | number: '1.0-0' }} ₫</td>
                 <td>
                   @switch (stockout.statusInvoice.code) { @case ('NOT_PAID') {
                   <span class="badge border border-warning text-warning">
@@ -61,7 +60,7 @@
               }@empty {
               <tr>
                 <td colspan="6" class="text-center">
-                  <b>Hiện không có hóa đơn xuất kho nào trong hệ thống !</b>
+                  <b>Hiện không có phiếu xuất kho nào trong hệ thống !</b>
                 </td>
               </tr>
               }
