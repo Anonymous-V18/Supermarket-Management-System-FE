@@ -81,5 +81,8 @@ export const ApiUrl = {
   user: {
     changePassword: `${environment.apiUrl}/users/update/change-password`,
   },
+  dashboard: {
+    shiftChecklist: `${environment.apiUrl}/dashboard/shift-checklist`,
+  },
   logout: `${environment.apiUrl}/auth/logout`,
 };

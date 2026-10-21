@@ -8,7 +8,13 @@ import {
   signal,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
+import { catchError, concatMap, debounceTime, EMPTY, Subject, tap } from 'rxjs';
+import { ShiftChecklistDTORequest } from '../../../dtos/request/dashboard/shift-checklist.dto';
+import { ShiftChecklistDTOResponse } from '../../../dtos/response/dashboard/shift-checklist.dto';
+import { DashboardService } from '../../../services/dashboard.service';
 import { LocalStorageService } from '../../../services/local-storage.service';
 import { RoleService } from '../../../services/role.service';
 
@@ -34,6 +40,8 @@ interface ChecklistItem {
   label: string;
   group: 'start' | 'end';
 }
+
+type SyncState = 'idle' | 'loading' | 'saving' | 'saved' | 'offline';
 
 // Shift times are the store's convention — adjust here if they change.
 const SHIFTS: Shift[] = [
@@ -171,12 +179,52 @@ export class DashboardComponent {
   readonly startItems = CHECKLIST.filter((item) => item.group === 'start');
   readonly endItems = CHECKLIST.filter((item) => item.group === 'end');
   readonly checked = signal<Set<string>>(new Set());
+  readonly openingCash = signal<number | null>(null);
+  readonly closingCash = signal<number | null>(null);
+  readonly notes = signal('');
+  readonly syncState = signal<SyncState>('idle');
   readonly progress = computed(() =>
     Math.round((this.checked().size / CHECKLIST.length) * 100)
   );
 
+  private dashboardService = inject(DashboardService);
+  private toastrService = inject(ToastrService);
+  private toastrConfig = {
+    timeOut: 3000,
+    closeButton: true,
+    progressBar: true,
+  };
+  private saveQueue = new Subject<ShiftChecklistDTORequest>();
+  // Set when the user edits before the server copy arrives, so it isn't overwritten.
+  private editedSinceLoad = false;
+
   constructor() {
     const destroyRef = inject(DestroyRef);
+
+    // Each save sends the whole checklist, so saves run in order and the last one wins.
+    this.saveQueue
+      .pipe(
+        debounceTime(400),
+        tap(() => this.syncState.set('saving')),
+        concatMap((request) =>
+          this.dashboardService
+            .saveShiftChecklist(request, this.username)
+            .pipe(
+              tap(() => this.syncState.set('saved')),
+              catchError((error: any) => {
+                this.syncState.set('offline');
+                this.toastrService.error(
+                  error?.error?.message ?? 'Không thể lưu danh sách công việc lên hệ thống.',
+                  'Lỗi !',
+                  this.toastrConfig
+                );
+                return EMPTY;
+              })
+            )
+        ),
+        takeUntilDestroyed(destroyRef)
+      )
+      .subscribe();
 
     // Browser only: a running interval would keep SSR from settling.
     afterNextRender(() => {
@@ -196,25 +244,93 @@ export class DashboardComponent {
     const next = new Set(this.checked());
     next.has(id) ? next.delete(id) : next.add(id);
     this.checked.set(next);
-    this.localStorageService.set(
-      this.checklistKey(),
-      JSON.stringify([...next])
+    this.persist();
+  }
+
+  setCash(field: 'opening' | 'closing', event: Event): void {
+    const raw = (event.target as HTMLInputElement).value.trim();
+    const value = raw === '' ? null : Number(raw);
+    if (value !== null && (!Number.isFinite(value) || value < 0)) return;
+    (field === 'opening' ? this.openingCash : this.closingCash).set(value);
+    this.persist();
+  }
+
+  setNotes(event: Event): void {
+    this.notes.set((event.target as HTMLTextAreaElement).value);
+    this.persist();
+  }
+
+  private persist(): void {
+    this.editedSinceLoad = true;
+    const { date, shiftCode } = this.workShift();
+    const request = new ShiftChecklistDTORequest(
+      date,
+      shiftCode,
+      [...this.checked()],
+      this.openingCash(),
+      this.closingCash(),
+      this.notes()
     );
+    // Local copy keeps the checklist usable when the server can't be reached.
+    this.localStorageService.set(this.checklistKey(), JSON.stringify(request));
+    this.saveQueue.next(request);
   }
 
   private loadChecklist(): void {
+    this.applyChecklist(this.readLocalChecklist());
+    this.editedSinceLoad = false;
+    this.syncState.set('loading');
+
+    const { date, shiftCode } = this.workShift();
+    this.dashboardService
+      .getShiftChecklist(date, shiftCode, this.username)
+      .subscribe({
+        next: (response) => {
+          if (this.editedSinceLoad || this.workShift().shiftCode !== shiftCode) {
+            return;
+          }
+          const checklist = response.result;
+          this.applyChecklist(checklist);
+          this.localStorageService.set(
+            this.checklistKey(),
+            JSON.stringify(checklist)
+          );
+          this.syncState.set('saved');
+        },
+        error: () => this.syncState.set('offline'),
+      });
+  }
+
+  private applyChecklist(
+    checklist: Partial<ShiftChecklistDTOResponse> | null
+  ): void {
+    this.checked.set(new Set(checklist?.checkedItemIds ?? []));
+    this.openingCash.set(checklist?.openingCash ?? null);
+    this.closingCash.set(checklist?.closingCash ?? null);
+    this.notes.set(checklist?.notes ?? '');
+  }
+
+  private readLocalChecklist(): Partial<ShiftChecklistDTOResponse> | null {
     try {
       const saved = JSON.parse(
-        this.localStorageService.get(this.checklistKey()) ?? '[]'
+        this.localStorageService.get(this.checklistKey()) ?? 'null'
       );
-      this.checked.set(new Set(Array.isArray(saved) ? saved : []));
+      // Older versions stored only the array of checked ids.
+      if (Array.isArray(saved)) return { checkedItemIds: saved };
+      return saved && typeof saved === 'object' ? saved : null;
     } catch {
-      this.checked.set(new Set());
+      return null;
     }
   }
 
   // One checklist per user, per shift, per working day.
   private checklistKey(): string {
+    const { date, shiftCode } = this.workShift();
+    return `shift-checklist:${this.username}:${date}:${shiftCode}`;
+  }
+
+  // Working day (yyyy-MM-dd) and code of the current shift, as the backend expects them.
+  private workShift(): { date: string; shiftCode: string } {
     const now = this.now();
     const shift = this.shift();
     // The night shift belongs to the day it started on.
@@ -222,8 +338,9 @@ export class DashboardComponent {
     if (shift.start > shift.end && now.getHours() < shift.end) {
       day.setDate(day.getDate() - 1);
     }
-    const date = `${day.getFullYear()}-${day.getMonth() + 1}-${day.getDate()}`;
-    return `shift-checklist:${this.username}:${date}:${shift.code}`;
+    const pad = (value: number) => String(value).padStart(2, '0');
+    const date = `${day.getFullYear()}-${pad(day.getMonth() + 1)}-${pad(day.getDate())}`;
+    return { date, shiftCode: shift.code };
   }
 
   private shiftOf(date: Date): Shift {

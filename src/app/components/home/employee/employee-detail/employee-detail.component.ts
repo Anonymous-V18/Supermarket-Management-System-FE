@@ -37,7 +37,8 @@ export class EmployeeDetailComponent {
     email: ['', [Validators.required, Validators.email]],
     positionId: ['', Validators.required],
     currentAddress: this.formBuilder.group({
-      id: ['', Validators.required],
+      // Empty when the employee has no address yet; the backend then creates one.
+      id: [''],
       cityId: ['', Validators.required],
       districtId: ['', Validators.required],
       wardId: ['', Validators.required],

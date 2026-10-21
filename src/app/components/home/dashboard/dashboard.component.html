@@ -63,7 +63,16 @@
     <div class="col-xl-4 col-12">
       <section class="card h-100">
         <div class="card-header">
-          <h2 class="card-title h5 mb-2">Việc cần làm trong ca</h2>
+          <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+            <h2 class="card-title h5 mb-0">Việc cần làm trong ca</h2>
+            @if (progress() === 100) {
+            <span class="badge rounded-pill text-bg-success">
+              <i class="bi bi-check2 me-1"></i>Hoàn thành
+            </span>
+            } @else {
+            <span class="small text-secondary">{{ progress() }}%</span>
+            }
+          </div>
           <div
             class="progress"
             role="progressbar"
@@ -88,6 +97,20 @@
             <span>{{ item.label }}</span>
           </label>
           }
+          <label class="d-flex flex-column gap-1 mt-2" for="opening-cash">
+            <span class="small text-secondary">Tiền đầu ca (VNĐ)</span>
+            <input
+              id="opening-cash"
+              type="number"
+              min="0"
+              step="1000"
+              inputmode="numeric"
+              class="form-control"
+              placeholder="0"
+              [value]="openingCash() ?? ''"
+              (change)="setCash('opening', $event)"
+            />
+          </label>
           <h3 class="checklist-title mt-3">Cuối ca</h3>
           @for (item of endItems; track item.id) {
           <label class="check-item">
@@ -100,8 +123,49 @@
             <span>{{ item.label }}</span>
           </label>
           }
-          <p class="small text-secondary mt-3 mb-0">
-            Danh sách được lưu trên máy này và tự làm mới khi sang ca mới.
+          <label class="d-flex flex-column gap-1 mt-2" for="closing-cash">
+            <span class="small text-secondary">Tiền cuối ca (VNĐ)</span>
+            <input
+              id="closing-cash"
+              type="number"
+              min="0"
+              step="1000"
+              inputmode="numeric"
+              class="form-control"
+              placeholder="0"
+              [value]="closingCash() ?? ''"
+              (change)="setCash('closing', $event)"
+            />
+          </label>
+          <label class="d-flex flex-column gap-1 mt-3" for="shift-notes">
+            <span class="small text-secondary">Ghi chú bàn giao</span>
+            <textarea
+              id="shift-notes"
+              class="form-control"
+              rows="2"
+              placeholder="Sự cố, việc còn dang dở cho ca sau..."
+              [value]="notes()"
+              (change)="setNotes($event)"
+            ></textarea>
+          </label>
+          <p class="small text-secondary mt-3 mb-0" aria-live="polite">
+            @switch (syncState()) {
+            @case ('loading') {
+            <i class="bi bi-arrow-repeat me-1"></i>Đang tải dữ liệu ca...
+            }
+            @case ('saving') {
+            <i class="bi bi-cloud-arrow-up me-1"></i>Đang lưu...
+            }
+            @case ('saved') {
+            <i class="bi bi-cloud-check me-1"></i>Đã đồng bộ với hệ thống.
+            }
+            @case ('offline') {
+            <i class="bi bi-cloud-slash me-1 text-warning"></i>Không kết nối được máy chủ, đang lưu tạm trên máy này.
+            }
+            @default {
+            Danh sách tự làm mới khi sang ca mới.
+            }
+            }
           </p>
         </div>
       </section>

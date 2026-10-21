@@ -36,7 +36,8 @@ export class WarehouseDetailComponent implements OnInit {
     phoneNumber: ['', [Validators.required, Validators.minLength(10)]],
     email: ['', [Validators.required, Validators.email]],
     currentAddress: this.formBuilder.group({
-      id: ['', Validators.required],
+      // Empty when the record has no address yet; the backend then creates one.
+      id: [''],
       cityId: ['', Validators.required],
       districtId: ['', Validators.required],
       wardId: ['', Validators.required],
