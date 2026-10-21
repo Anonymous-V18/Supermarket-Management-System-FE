@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -23,6 +23,7 @@ import { WardService } from '../../../../services/ward.service';
   selector: 'app-account-info',
   imports: [RouterLink, ReactiveFormsModule, NgSelectModule],
   templateUrl: './account-info.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './account-info.component.css',
 })
 export class AccountInfoComponent {
@@ -67,6 +68,7 @@ export class AccountInfoComponent {
   ngOnInit(): void {
     if (this.roleService.hasSystemAdmin()) {
       this.router.navigate(['/home/account/change-password']);
+      return;
     }
     this.getMyInfo();
   }
@@ -224,11 +226,11 @@ export class AccountInfoComponent {
       positionId: this.employeeDTO.position.id,
       dob: this.datePipe.transform(this.employeeDTO.dob, 'yyyy-MM-ddTHH:mm:ss'),
       currentAddress: {
-        id: this.employeeDTO.address.id,
-        cityId: this.employeeDTO.address.district.city.id,
-        districtId: this.employeeDTO.address.district.id,
-        wardId: this.employeeDTO.address.ward.id,
-        street: this.employeeDTO.address.street,
+        id: this.employeeDTO.address?.id ?? '',
+        cityId: this.employeeDTO.address?.district.city.id ?? '',
+        districtId: this.employeeDTO.address?.district.id ?? '',
+        wardId: this.employeeDTO.address?.ward.id ?? '',
+        street: this.employeeDTO.address?.street ?? '',
       },
       roleIds: this.employeeDTO.user.roles.map((role) => role.id) ?? [],
     });

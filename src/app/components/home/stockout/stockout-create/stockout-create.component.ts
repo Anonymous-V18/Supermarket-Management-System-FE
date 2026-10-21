@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -25,6 +25,7 @@ import { ProductCommonDetailDTOResponse } from './../../../../dtos/response/prod
   selector: 'app-stockout-create',
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './stockout-create.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './stockout-create.component.css',
 })
 export class StockoutCreateComponent implements OnInit {

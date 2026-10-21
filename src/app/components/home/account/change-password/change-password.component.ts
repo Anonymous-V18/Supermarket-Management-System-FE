@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { ChangePasswordDTORequest } from '../../../../dtos/request/users/change-password.dto';
@@ -9,6 +9,7 @@ import { UserService } from '../../../../services/user.service';
   selector: 'app-change-password',
   imports: [ReactiveFormsModule],
   templateUrl: './change-password.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './change-password.component.css',
 })
 export class ChangePasswordComponent {

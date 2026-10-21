@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
@@ -18,6 +18,7 @@ import { UnitService } from '../../../../services/unit.service';
   selector: 'app-product-create',
   imports: [RouterLink, ReactiveFormsModule],
   templateUrl: './product-create.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './product-create.component.css',
 })
 export class ProductCreateComponent implements OnInit {

@@ -43,10 +43,13 @@
                   {{ employee.position.name }}
                 </td>
                 <td>
-                  {{ employee.address.street }},
-                  {{ employee.address.ward.name }},
+                  @if (employee.address) {
+                  {{ employee.address.street }}, {{ employee.address.ward.name }},
                   {{ employee.address.district.name }},
                   {{ employee.address.district.city.name }}
+                  } @else {
+                  <span class="text-secondary">Chưa cập nhật</span>
+                  }
                 </td>
               </tr>
               }@empty {

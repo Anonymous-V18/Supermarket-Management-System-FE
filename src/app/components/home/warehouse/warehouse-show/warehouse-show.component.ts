@@ -1,6 +1,6 @@
 import { RoleService } from './../../../../services/role.service';
 import { DatePipe } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { ApiResponse } from '../../../../dtos/response/api-response/api-response.dto';
@@ -11,6 +11,7 @@ import { WarehouseService } from '../../../../services/warehouse.service';
   selector: 'app-warehouse-show',
   imports: [RouterLink, DatePipe],
   templateUrl: './warehouse-show.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './warehouse-show.component.css',
 })
 export class WarehouseShowComponent implements OnInit {

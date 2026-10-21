@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { ApiResponse } from '../../../../dtos/response/api-response/api-response.dto';
@@ -10,6 +10,7 @@ import { DatePipe } from '@angular/common';
   selector: 'app-employee-show',
   imports: [RouterLink, DatePipe],
   templateUrl: './employee-show.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './employee-show.component.css',
 })
 export class EmployeeShowComponent implements OnInit {

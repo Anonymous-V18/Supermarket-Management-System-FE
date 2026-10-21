@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { InvoiceDTOResponse } from '../../../../dtos/response/invoices/invoice.dto';
@@ -10,6 +10,7 @@ import { ApiResponse } from './../../../../dtos/response/api-response/api-respon
   selector: 'app-invoice-show',
   imports: [DatePipe, RouterLink],
   templateUrl: './invoice-show.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './invoice-show.component.css',
 })
 export class InvoiceShowComponent implements OnInit {

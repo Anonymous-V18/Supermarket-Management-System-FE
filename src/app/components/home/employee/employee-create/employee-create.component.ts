@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -21,6 +21,7 @@ import { WardService } from '../../../../services/ward.service';
   selector: 'app-employee-create',
   imports: [RouterLink, ReactiveFormsModule, NgSelectModule],
   templateUrl: './employee-create.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './employee-create.component.css',
 })
 export class EmployeeCreateComponent implements OnInit {

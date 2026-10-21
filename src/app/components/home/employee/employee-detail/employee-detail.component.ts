@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -24,6 +24,7 @@ import { WardService } from '../../../../services/ward.service';
   standalone: true,
   imports: [ReactiveFormsModule, RouterLink, NgSelectModule],
   templateUrl: './employee-detail.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './employee-detail.component.css',
 })
 export class EmployeeDetailComponent {
@@ -233,11 +234,11 @@ export class EmployeeDetailComponent {
       positionId: this.employeeDTO.position.id,
       dob: this.datePipe.transform(this.employeeDTO.dob, 'yyyy-MM-ddTHH:mm:ss'),
       currentAddress: {
-        id: this.employeeDTO.address.id,
-        cityId: this.employeeDTO.address.district.city.id,
-        districtId: this.employeeDTO.address.district.id,
-        wardId: this.employeeDTO.address.ward.id,
-        street: this.employeeDTO.address.street,
+        id: this.employeeDTO.address?.id ?? '',
+        cityId: this.employeeDTO.address?.district.city.id ?? '',
+        districtId: this.employeeDTO.address?.district.id ?? '',
+        wardId: this.employeeDTO.address?.ward.id ?? '',
+        street: this.employeeDTO.address?.street ?? '',
       },
       roleIds: this.employeeDTO.user.roles.map((role) => role.id) ?? [],
     });

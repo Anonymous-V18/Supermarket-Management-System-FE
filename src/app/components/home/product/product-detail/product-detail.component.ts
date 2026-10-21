@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
@@ -20,6 +20,7 @@ import { RoleService } from '../../../../services/role.service';
   selector: 'app-product-detail',
   imports: [RouterLink, ReactiveFormsModule],
   templateUrl: './product-detail.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './product-detail.component.css',
 })
 export class ProductDetailComponent implements OnInit {

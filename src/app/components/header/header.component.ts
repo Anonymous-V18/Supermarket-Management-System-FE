@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { LogoutService } from '../../services/logout.service';
@@ -9,6 +9,7 @@ import { LocalStorageService } from './../../services/local-storage.service';
   selector: 'app-header',
   imports: [RouterLink],
   templateUrl: './header.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './header.component.css',
 })
 export class HeaderComponent implements OnInit {

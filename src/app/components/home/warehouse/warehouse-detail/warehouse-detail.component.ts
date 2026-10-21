@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -24,6 +24,7 @@ import { WarehouseService } from '../../../../services/warehouse.service';
   selector: 'app-warehouse-detail',
   imports: [RouterLink, ReactiveFormsModule],
   templateUrl: './warehouse-detail.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './warehouse-detail.component.css',
 })
 export class WarehouseDetailComponent implements OnInit {
@@ -196,11 +197,11 @@ export class WarehouseDetailComponent implements OnInit {
       phoneNumber: this.warehouseDTO.phoneNumber,
       email: this.warehouseDTO.email,
       currentAddress: {
-        id: this.warehouseDTO.address.id,
-        cityId: this.warehouseDTO.address.district.city.id,
-        districtId: this.warehouseDTO.address.district.id,
-        wardId: this.warehouseDTO.address.ward.id,
-        street: this.warehouseDTO.address.street,
+        id: this.warehouseDTO.address?.id ?? '',
+        cityId: this.warehouseDTO.address?.district.city.id ?? '',
+        districtId: this.warehouseDTO.address?.district.id ?? '',
+        wardId: this.warehouseDTO.address?.ward.id ?? '',
+        street: this.warehouseDTO.address?.street ?? '',
       },
     });
   }

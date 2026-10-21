@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -23,6 +23,7 @@ import { SupplierDTOResponse } from './../../../../dtos/response/suppliers/suppl
   selector: 'app-supplier-detail',
   imports: [RouterLink, ReactiveFormsModule],
   templateUrl: './supplier-detail.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './supplier-detail.component.css',
 })
 export class SupplierDetailComponent {
@@ -194,11 +195,11 @@ export class SupplierDetailComponent {
       phoneNumber: this.supplierDTO.phoneNumber,
       email: this.supplierDTO.email,
       currentAddress: {
-        id: this.supplierDTO.address.id,
-        cityId: this.supplierDTO.address.district.city.id,
-        districtId: this.supplierDTO.address.district.id,
-        wardId: this.supplierDTO.address.ward.id,
-        street: this.supplierDTO.address.street,
+        id: this.supplierDTO.address?.id ?? '',
+        cityId: this.supplierDTO.address?.district.city.id ?? '',
+        districtId: this.supplierDTO.address?.district.id ?? '',
+        wardId: this.supplierDTO.address?.ward.id ?? '',
+        street: this.supplierDTO.address?.street ?? '',
       },
     });
   }

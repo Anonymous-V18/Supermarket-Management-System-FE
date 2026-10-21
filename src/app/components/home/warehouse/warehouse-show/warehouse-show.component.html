@@ -44,10 +44,13 @@
                 </td>
                 <td>{{ warehouse.phoneNumber }}</td>
                 <td>
-                  {{ warehouse.address.street }},
-                  {{ warehouse.address.ward.name }},
+                  @if (warehouse.address) {
+                  {{ warehouse.address.street }}, {{ warehouse.address.ward.name }},
                   {{ warehouse.address.district.name }},
                   {{ warehouse.address.district.city.name }}
+                  } @else {
+                  <span class="text-secondary">Chưa cập nhật</span>
+                  }
                 </td>
               </tr>
               }@empty {

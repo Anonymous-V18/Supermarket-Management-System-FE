@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -21,6 +21,7 @@ import { StockinService } from './../../../../services/stockin.service';
   selector: 'app-stockin-detail',
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './stockin-detail.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './stockin-detail.component.css',
 })
 export class StockinDetailComponent implements OnInit {

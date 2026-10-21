@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { RoleService } from '../../services/role.service';
 
@@ -6,6 +6,7 @@ import { RoleService } from '../../services/role.service';
   selector: 'app-sidebar',
   imports: [RouterLink, RouterLinkActive],
   templateUrl: './sidebar.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './sidebar.component.css',
 })
 export class SidebarComponent {

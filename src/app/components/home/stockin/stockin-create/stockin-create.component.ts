@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -23,6 +23,7 @@ import { WarehouseService } from './../../../../services/warehouse.service';
   selector: 'app-stockin-create',
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './stockin-create.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './stockin-create.component.css',
 })
 export class StockinCreateComponent implements OnInit {

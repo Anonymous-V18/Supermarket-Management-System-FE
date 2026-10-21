@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { ApiResponse } from '../../../../dtos/response/api-response/api-response.dto';
@@ -10,6 +10,7 @@ import { SupplierService } from '../../../../services/supplier.service';
   selector: 'app-supplier-show',
   imports: [RouterLink, DatePipe],
   templateUrl: './supplier-show.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './supplier-show.component.css',
 })
 export class SupplierShowComponent implements OnInit {

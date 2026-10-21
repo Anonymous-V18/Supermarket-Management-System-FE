@@ -39,10 +39,13 @@
                 <td>{{ supplier.contactDate | date : "dd/MM/yyyy" }}</td>
                 <td>{{ supplier.phoneNumber }}</td>
                 <td>
-                  {{ supplier.address.street }},
-                  {{ supplier.address.ward.name }},
+                  @if (supplier.address) {
+                  {{ supplier.address.street }}, {{ supplier.address.ward.name }},
                   {{ supplier.address.district.name }},
                   {{ supplier.address.district.city.name }}
+                  } @else {
+                  <span class="text-secondary">Chưa cập nhật</span>
+                  }
                 </td>
               </tr>
               }@empty {

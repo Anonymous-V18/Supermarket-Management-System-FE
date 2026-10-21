@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -21,6 +21,7 @@ import { CityService } from './../../../../services/city.service';
   selector: 'app-warehouse-create',
   imports: [RouterLink, ReactiveFormsModule],
   templateUrl: './warehouse-create.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './warehouse-create.component.css',
 })
 export class WarehouseCreateComponent implements OnInit {

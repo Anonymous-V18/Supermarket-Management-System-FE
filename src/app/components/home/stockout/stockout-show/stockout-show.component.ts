@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { ApiResponse } from '../../../../dtos/response/api-response/api-response.dto';
@@ -10,6 +10,7 @@ import { StockoutService } from '../../../../services/stockout.service';
   selector: 'app-stockout-show',
   imports: [RouterLink, DatePipe],
   templateUrl: './stockout-show.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './stockout-show.component.css',
 })
 export class StockoutShowComponent implements OnInit {

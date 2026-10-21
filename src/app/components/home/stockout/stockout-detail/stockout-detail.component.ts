@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -25,6 +25,7 @@ import { StockoutService } from '../../../../services/stockout.service';
   selector: 'app-stockout-detail',
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './stockout-detail.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './stockout-detail.component.css',
 })
 export class StockoutDetailComponent implements OnInit {

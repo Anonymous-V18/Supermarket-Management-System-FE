@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { RoleService } from '../../../services/role.service';
 
@@ -6,6 +6,7 @@ import { RoleService } from '../../../services/role.service';
   selector: 'app-account',
   imports: [RouterLink, RouterOutlet, RouterLinkActive],
   templateUrl: './account.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './account.component.css',
 })
 export class AccountComponent {

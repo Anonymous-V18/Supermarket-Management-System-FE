@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -21,6 +21,7 @@ import { WardService } from '../../../../services/ward.service';
   selector: 'app-supplier-create',
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './supplier-create.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './supplier-create.component.css',
 })
 export class SupplierCreateComponent {

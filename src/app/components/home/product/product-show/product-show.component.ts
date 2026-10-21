@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { ProductService } from '../../../../services/product.service';
 import { ProductDTOResponse } from '../../../../dtos/response/products/product.dto';
@@ -10,6 +10,7 @@ import { RoleService } from '../../../../services/role.service';
   selector: 'app-product-show',
   imports: [RouterLink],
   templateUrl: './product-show.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './product-show.component.css',
 })
 export class ProductShowComponent implements OnInit {

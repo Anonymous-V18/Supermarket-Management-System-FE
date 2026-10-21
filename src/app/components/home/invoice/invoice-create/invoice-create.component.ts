@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -26,6 +26,7 @@ import { WarehouseService } from '../../../../services/warehouse.service';
   standalone: true,
   imports: [RouterLink, ReactiveFormsModule],
   templateUrl: './invoice-create.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './invoice-create.component.css',
 })
 export class InvoiceCreateComponent {
