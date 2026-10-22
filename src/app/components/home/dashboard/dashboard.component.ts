@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import {
   afterNextRender,
   Component,
@@ -13,7 +13,11 @@ import { RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { catchError, concatMap, debounceTime, EMPTY, Subject, tap } from 'rxjs';
 import { ShiftChecklistDTORequest } from '../../../dtos/request/dashboard/shift-checklist.dto';
-import { ShiftChecklistDTOResponse } from '../../../dtos/response/dashboard/shift-checklist.dto';
+import { DashboardSummaryDTOResponse } from '../../../dtos/response/dashboard/dashboard-summary.dto';
+import {
+  ChecklistItemDTOResponse,
+  ShiftChecklistDTOResponse,
+} from '../../../dtos/response/dashboard/shift-checklist.dto';
 import { DashboardService } from '../../../services/dashboard.service';
 import { LocalStorageService } from '../../../services/local-storage.service';
 import { RoleService } from '../../../services/role.service';
@@ -35,13 +39,9 @@ interface Shift {
   end: number; // hour, exclusive
 }
 
-interface ChecklistItem {
-  id: string;
-  label: string;
-  group: 'start' | 'end';
-}
-
 type SyncState = 'idle' | 'loading' | 'saving' | 'saved' | 'offline';
+
+const SUMMARY_REFRESH_MS = 2 * 60 * 1000;
 
 // Shift times are the store's convention — adjust here if they change.
 const SHIFTS: Shift[] = [
@@ -53,7 +53,7 @@ const SHIFTS: Shift[] = [
 const ROLE_LABELS: Record<string, string> = {
   ADMIN: 'Quản trị viên',
   STOREKEEPER: 'Thủ kho',
-  SALESMAN: 'Thu ngân',
+  SALESMAN: 'Nhân viên bán hàng',
 };
 
 const QUICK_ACTIONS: QuickAction[] = [
@@ -132,18 +132,9 @@ const QUICK_ACTIONS: QuickAction[] = [
   },
 ];
 
-const CHECKLIST: ChecklistItem[] = [
-  { id: 'printer', label: 'Kiểm tra máy in hóa đơn và giấy in', group: 'start' },
-  { id: 'scanner', label: 'Kiểm tra máy quét mã vạch', group: 'start' },
-  { id: 'cash-start', label: 'Kiểm đếm tiền lẻ trong két', group: 'start' },
-  { id: 'unpaid', label: 'Rà soát hóa đơn chưa thanh toán', group: 'end' },
-  { id: 'cash-end', label: 'Đối chiếu tiền mặt cuối ca', group: 'end' },
-  { id: 'handover', label: 'Bàn giao ca và đăng xuất', group: 'end' },
-];
-
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink, DatePipe, DecimalPipe],
   templateUrl: './dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './dashboard.component.css',
@@ -176,16 +167,28 @@ export class DashboardComponent {
   readonly primaryActions = this.actions.filter((action) => action.primary);
   readonly otherActions = this.actions.filter((action) => !action.primary);
 
-  readonly startItems = CHECKLIST.filter((item) => item.group === 'start');
-  readonly endItems = CHECKLIST.filter((item) => item.group === 'end');
+  // Tasks come from the backend (checklist_item table), already in display order.
+  readonly items = signal<ChecklistItemDTOResponse[]>([]);
+  readonly startItems = computed(() =>
+    this.items().filter((item) => item.groupCode === 'START')
+  );
+  readonly endItems = computed(() =>
+    this.items().filter((item) => item.groupCode === 'END')
+  );
   readonly checked = signal<Set<string>>(new Set());
-  readonly openingCash = signal<number | null>(null);
-  readonly closingCash = signal<number | null>(null);
   readonly notes = signal('');
   readonly syncState = signal<SyncState>('idle');
-  readonly progress = computed(() =>
-    Math.round((this.checked().size / CHECKLIST.length) * 100)
-  );
+  readonly progress = computed(() => {
+    const items = this.items();
+    if (!items.length) return 0;
+    const checked = this.checked();
+    const done = items.filter((item) => checked.has(item.code)).length;
+    return Math.round((done / items.length) * 100);
+  });
+
+  // Storekeepers don't sell, so they get no sales figures.
+  readonly showSales = this.roleService.hasRole(['ADMIN', 'SALESMAN']);
+  readonly summary = signal<DashboardSummaryDTOResponse | null>(null);
 
   private dashboardService = inject(DashboardService);
   private toastrService = inject(ToastrService);
@@ -208,7 +211,7 @@ export class DashboardComponent {
         tap(() => this.syncState.set('saving')),
         concatMap((request) =>
           this.dashboardService
-            .saveShiftChecklist(request, this.username)
+            .saveShiftChecklist(request)
             .pipe(
               tap(() => this.syncState.set('saved')),
               catchError((error: any) => {
@@ -229,35 +232,51 @@ export class DashboardComponent {
     // Browser only: a running interval would keep SSR from settling.
     afterNextRender(() => {
       this.loadChecklist();
+      this.loadSummary();
       const timer = setInterval(() => {
         const previousShift = this.shift().code;
         this.now.set(new Date());
         if (this.shift().code !== previousShift) {
+          this.summary.set(null);
           this.loadChecklist();
+          this.loadSummary();
         }
       }, 1000);
-      destroyRef.onDestroy(() => clearInterval(timer));
+      const summaryTimer = setInterval(
+        () => this.loadSummary(),
+        SUMMARY_REFRESH_MS
+      );
+      destroyRef.onDestroy(() => {
+        clearInterval(timer);
+        clearInterval(summaryTimer);
+      });
     });
   }
 
-  toggle(id: string): void {
+  toggle(code: string): void {
     const next = new Set(this.checked());
-    next.has(id) ? next.delete(id) : next.add(id);
+    next.has(code) ? next.delete(code) : next.add(code);
     this.checked.set(next);
-    this.persist();
-  }
-
-  setCash(field: 'opening' | 'closing', event: Event): void {
-    const raw = (event.target as HTMLInputElement).value.trim();
-    const value = raw === '' ? null : Number(raw);
-    if (value !== null && (!Number.isFinite(value) || value < 0)) return;
-    (field === 'opening' ? this.openingCash : this.closingCash).set(value);
     this.persist();
   }
 
   setNotes(event: Event): void {
     this.notes.set((event.target as HTMLTextAreaElement).value);
     this.persist();
+  }
+
+  loadSummary(): void {
+    if (!this.showSales) return;
+    const { date, shiftCode } = this.workShift();
+    this.dashboardService.getSummary(date, shiftCode).subscribe({
+      next: (response) => {
+        if (this.workShift().shiftCode === shiftCode) {
+          this.summary.set(response.result);
+        }
+      },
+      // Keep the last figures; the tiles show a placeholder until the first load succeeds.
+      error: () => {},
+    });
   }
 
   private persist(): void {
@@ -267,12 +286,15 @@ export class DashboardComponent {
       date,
       shiftCode,
       [...this.checked()],
-      this.openingCash(),
-      this.closingCash(),
       this.notes()
     );
-    // Local copy keeps the checklist usable when the server can't be reached.
-    this.localStorageService.set(this.checklistKey(), JSON.stringify(request));
+    // Local copy (with the task list) keeps the checklist usable when the server can't be reached.
+    const cached: Partial<ShiftChecklistDTOResponse> = {
+      items: this.items(),
+      checkedItemIds: request.checkedItemIds,
+      notes: request.notes ?? '',
+    };
+    this.localStorageService.set(this.checklistKey(), JSON.stringify(cached));
     this.saveQueue.next(request);
   }
 
@@ -283,7 +305,7 @@ export class DashboardComponent {
 
     const { date, shiftCode } = this.workShift();
     this.dashboardService
-      .getShiftChecklist(date, shiftCode, this.username)
+      .getShiftChecklist(date, shiftCode)
       .subscribe({
         next: (response) => {
           if (this.editedSinceLoad || this.workShift().shiftCode !== shiftCode) {
@@ -304,9 +326,17 @@ export class DashboardComponent {
   private applyChecklist(
     checklist: Partial<ShiftChecklistDTOResponse> | null
   ): void {
-    this.checked.set(new Set(checklist?.checkedItemIds ?? []));
-    this.openingCash.set(checklist?.openingCash ?? null);
-    this.closingCash.set(checklist?.closingCash ?? null);
+    // Older caches have no task list; keep whatever list is already shown.
+    if (checklist?.items?.length) {
+      this.items.set(checklist.items);
+    }
+    // Drop codes of tasks that are no longer active.
+    const knownCodes = new Set(this.items().map((item) => item.code));
+    this.checked.set(
+      new Set(
+        (checklist?.checkedItemIds ?? []).filter((code) => knownCodes.has(code))
+      )
+    );
     this.notes.set(checklist?.notes ?? '');
   }
 

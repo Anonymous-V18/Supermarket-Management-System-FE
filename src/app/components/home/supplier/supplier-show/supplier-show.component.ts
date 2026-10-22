@@ -1,14 +1,24 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { debounceTime, Subject } from 'rxjs';
 import { ApiResponse } from '../../../../dtos/response/api-response/api-response.dto';
+import { PageResponse } from '../../../../dtos/response/page/page-response.dto';
 import { SupplierDTOResponse } from '../../../../dtos/response/suppliers/supplier.dto';
 import { SupplierService } from '../../../../services/supplier.service';
+import { PagerComponent } from '../../../shared/pager/pager.component';
 
 @Component({
   selector: 'app-supplier-show',
-  imports: [RouterLink, DatePipe],
+  imports: [DatePipe, PagerComponent, RouterLink],
   templateUrl: './supplier-show.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './supplier-show.component.css',
@@ -21,22 +31,43 @@ export class SupplierShowComponent implements OnInit {
     progressBar: true,
   };
   private supplierService = inject(SupplierService);
-  supplierDTOs!: SupplierDTOResponse[];
+  private destroyRef = inject(DestroyRef);
+  private keywordChanges = new Subject<string>();
+  private readonly pageSize = 20;
+  supplierDTOs: SupplierDTOResponse[] = [];
+  keyword = '';
+  page = 0;
+  totalPages = 0;
+  totalItems = 0;
 
   ngOnInit(): void {
-    this.getAllNoParam();
+    // Search as the user types, without a request per keystroke
+    this.keywordChanges
+      .pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef))
+      .subscribe((keyword) => {
+        this.keyword = keyword;
+        this.load(0);
+      });
+    this.load(0);
   }
 
-  getAllNoParam() {
-    this.supplierService.showAllNoParam().subscribe({
-      next: (response: ApiResponse<SupplierDTOResponse[]>) => {
-        this.supplierDTOs = response.result;
+  onKeyword(event: Event) {
+    this.keywordChanges.next((event.target as HTMLInputElement).value);
+  }
+
+  load(page: number) {
+    this.supplierService.search(this.keyword, page, this.pageSize).subscribe({
+      next: (response: ApiResponse<PageResponse<SupplierDTOResponse>>) => {
+        this.supplierDTOs = response.result.items;
+        this.page = response.result.page;
+        this.totalPages = response.result.totalPages;
+        this.totalItems = response.result.totalItems;
       },
       complete: () => {},
       error: (error: any) => {
         this.toastrService.error(
           error.error.message,
-          'Error !',
+          'Lỗi !',
           this.toastrConfig
         );
       },

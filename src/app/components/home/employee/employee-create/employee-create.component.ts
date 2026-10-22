@@ -30,7 +30,7 @@ export class EmployeeCreateComponent implements OnInit {
     name: ['', Validators.required],
     gender: ['', Validators.required],
     dob: ['', Validators.required],
-    phoneNumber: ['', [Validators.required, Validators.minLength(10)]],
+    phoneNumber: ['', [Validators.required, Validators.pattern(/^0[0-9]{9,10}$/)]],
     email: ['', [Validators.required, Validators.email]],
     positionId: ['', Validators.required],
     newAddress: this.formBuilder.group({
@@ -176,7 +176,7 @@ export class EmployeeCreateComponent implements OnInit {
     return new EmployeeInsertDTORequest(
       this.employeeCreateForm.value.name,
       this.employeeCreateForm.value.gender,
-      new Date(this.employeeCreateForm.value.dob ?? Date.now()).toISOString(),
+      this.employeeCreateForm.value.dob,
       this.employeeCreateForm.value.phoneNumber,
       this.employeeCreateForm.value.email,
       this.employeeCreateForm.value.positionId,

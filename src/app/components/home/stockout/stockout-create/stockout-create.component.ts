@@ -22,6 +22,7 @@ import { StockoutService } from '../../../../services/stockout.service';
 import { WarehouseService } from '../../../../services/warehouse.service';
 import { ProductCommonDetailDTOResponse } from './../../../../dtos/response/products/product-common.dto';
 
+import { StockOutDetailInsertDTORequest } from '../../../../dtos/request/stockout-details/stockout-detail-insert.dto';
 @Component({
   selector: 'app-stockout-create',
   imports: [ReactiveFormsModule, RouterLink, DecimalPipe],
@@ -32,12 +33,13 @@ import { ProductCommonDetailDTOResponse } from './../../../../dtos/response/prod
 export class StockoutCreateComponent implements OnInit {
   private formBuilder = inject(FormBuilder);
   stockOutCreateForm = this.formBuilder.group({
-    totalProduct: ['', [Validators.required, Validators.min(0)]],
-    totalPrice: ['', [Validators.required, Validators.min(0)]],
-    stockOutDate: ['', [Validators.required]],
-    reason: ['', [Validators.required]],
-    statusInvoiceId: ['', [Validators.required]],
-    customerId: ['', [Validators.required]],
+    // Display only: the server computes totals
+    totalProduct: [''],
+    totalPrice: [''],
+    stockOutDate: [''],
+    reason: ['', [Validators.required, Validators.maxLength(255)]],
+    statusInvoiceId: [''],
+    customerId: [''],
     warehouseId: ['', [Validators.required]],
     stockOutDetailInsertRequests: this.formBuilder.array(
       [],
@@ -71,7 +73,7 @@ export class StockoutCreateComponent implements OnInit {
 
   onSubmit() {
     this.stockoutService.insert(this.mappingDataToDTORequest()).subscribe({
-      next: (response: ApiResponse<void>) => {
+      next: (response: ApiResponse<unknown>) => {
         this.toastrService.success(
           response.message,
           'Success !',
@@ -93,7 +95,10 @@ export class StockoutCreateComponent implements OnInit {
   getAllStatusInvoice() {
     this.statusInvoiceService.showAllNoParam().subscribe({
       next: (response: ApiResponse<StatusInvoiceDTOResponse[]>) => {
-        this.statusInvoiceDTOs = response.result;
+        // "Chờ xử lý" is the empty default option; a new document can't start cancelled
+        this.statusInvoiceDTOs = response.result.filter(
+          (status) => status.code === 'COMPLETED'
+        );
       },
       complete: () => {},
       error: (error: any) => {
@@ -239,17 +244,14 @@ export class StockoutCreateComponent implements OnInit {
   }
 
   mappingDataToDTORequest(): StockOutInsertDTORequest {
+    const value = this.stockOutCreateForm.value;
     return new StockOutInsertDTORequest(
-      this.stockOutCreateForm.value.totalProduct,
-      this.stockOutCreateForm.value.totalPrice,
-      this.stockOutCreateForm.value.reason,
-      new Date(
-        this.stockOutCreateForm.value.stockOutDate ?? Date.now()
-      ).toISOString(),
-      this.stockOutCreateForm.value.statusInvoiceId,
-      this.stockOutCreateForm.value.stockOutDetailInsertRequests,
-      this.stockOutCreateForm.value.customerId,
-      this.stockOutCreateForm.value.warehouseId
+      value.warehouseId ?? '',
+      value.reason ?? '',
+      (value.stockOutDetailInsertRequests ?? []) as StockOutDetailInsertDTORequest[],
+      value.statusInvoiceId || null,
+      value.customerId || null,
+      value.stockOutDate ? new Date(value.stockOutDate).toISOString() : null
     );
   }
 }

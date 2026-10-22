@@ -25,6 +25,71 @@
     </div>
   </section>
 
+  <!-- Shift sales figures -->
+  @if (showSales) {
+  @let stats = summary();
+  <section class="row g-3 mb-3" aria-label="Số liệu bán hàng trong ca">
+    <div class="col-6 col-lg-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="small text-secondary">
+            {{ stats?.scope === "STORE" ? "Doanh thu ca (toàn cửa hàng)" : "Doanh thu ca của tôi" }}
+          </div>
+          <div class="fs-3 fw-bold text-break">
+            @if (stats) { {{ stats.revenue | number: "1.0-0" }} ₫ } @else { — }
+          </div>
+          <div class="small text-secondary">Không tính hóa đơn đã hủy</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <a
+        [routerLink]="['/home/invoice']"
+        class="card h-100 text-reset text-decoration-none"
+      >
+        <div class="card-body">
+          <div class="small text-secondary">Hóa đơn đã bán</div>
+          <div class="fs-3 fw-bold">{{ stats ? stats.invoiceCount : "—" }}</div>
+          <div class="small text-secondary">
+            {{ stats ? stats.productsSold : 0 }} sản phẩm
+            @if (stats?.cancelledInvoiceCount) { · {{ stats?.cancelledInvoiceCount }} đã hủy }
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="small text-secondary">Giá trị trung bình / hóa đơn</div>
+          <div class="fs-3 fw-bold text-break">
+            @if (stats?.invoiceCount) {
+            {{ stats!.revenue / stats!.invoiceCount | number: "1.0-0" }} ₫
+            } @else { — }
+          </div>
+          <div class="small text-secondary">Trong ca hiện tại</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="small text-secondary">Khuyến mãi đang áp dụng</div>
+          <div class="fs-3 fw-bold">{{ stats ? stats.activePromotions.length : "—" }}</div>
+          @for (promotion of stats?.activePromotions?.slice(0, 2) ?? []; track promotion.id) {
+          <div class="small text-truncate" [title]="promotion.name">
+            @if (promotion.voucherCode) {
+            <span class="badge text-bg-light border me-1">{{ promotion.voucherCode }}</span>
+            }
+            {{ promotion.name }}
+            <span class="text-secondary">đến {{ promotion.endDate | date: "dd/MM" }}</span>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+  }
+
   <div class="row g-3">
     <!-- Quick actions -->
     <div class="col-xl-8 col-12">
@@ -85,58 +150,36 @@
           </div>
         </div>
         <div class="card-body pt-2">
+          @if (!items().length) {
+          <p class="small text-secondary mt-2">
+            {{ syncState() === "offline" ? "Chưa tải được danh sách công việc." : "Đang tải danh sách công việc..." }}
+          </p>
+          } @else {
           <h3 class="checklist-title">Đầu ca</h3>
-          @for (item of startItems; track item.id) {
+          @for (item of startItems(); track item.code) {
           <label class="check-item">
             <input
               type="checkbox"
               class="form-check-input"
-              [checked]="checked().has(item.id)"
-              (change)="toggle(item.id)"
+              [checked]="checked().has(item.code)"
+              (change)="toggle(item.code)"
             />
             <span>{{ item.label }}</span>
           </label>
           }
-          <label class="d-flex flex-column gap-1 mt-2" for="opening-cash">
-            <span class="small text-secondary">Tiền đầu ca (VNĐ)</span>
-            <input
-              id="opening-cash"
-              type="number"
-              min="0"
-              step="1000"
-              inputmode="numeric"
-              class="form-control"
-              placeholder="0"
-              [value]="openingCash() ?? ''"
-              (change)="setCash('opening', $event)"
-            />
-          </label>
           <h3 class="checklist-title mt-3">Cuối ca</h3>
-          @for (item of endItems; track item.id) {
+          @for (item of endItems(); track item.code) {
           <label class="check-item">
             <input
               type="checkbox"
               class="form-check-input"
-              [checked]="checked().has(item.id)"
-              (change)="toggle(item.id)"
+              [checked]="checked().has(item.code)"
+              (change)="toggle(item.code)"
             />
             <span>{{ item.label }}</span>
           </label>
           }
-          <label class="d-flex flex-column gap-1 mt-2" for="closing-cash">
-            <span class="small text-secondary">Tiền cuối ca (VNĐ)</span>
-            <input
-              id="closing-cash"
-              type="number"
-              min="0"
-              step="1000"
-              inputmode="numeric"
-              class="form-control"
-              placeholder="0"
-              [value]="closingCash() ?? ''"
-              (change)="setCash('closing', $event)"
-            />
-          </label>
+          }
           <label class="d-flex flex-column gap-1 mt-3" for="shift-notes">
             <span class="small text-secondary">Ghi chú bàn giao</span>
             <textarea

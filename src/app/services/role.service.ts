@@ -46,7 +46,9 @@ export class RoleService {
     var username: string = this.localStorageService.get('username') ?? '';
     return (
       roles.some((role) => role === 'ADMIN') &&
-      username === this.usernameSystemAdmin
+      (username === this.usernameSystemAdmin ||
+       username === 'admin@supermarket.vn' ||
+       username === 'admin@supermarket.com')
     );
   }
 }

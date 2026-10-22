@@ -1,0 +1,156 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div class="card mb-3">
+    <div class="card-header card-header-actions">
+      <h1 class="card-title">
+        @if (salesReturn) {
+        Phiếu trả hàng {{ salesReturn.code }}
+        <span class="ms-2 fs-6" [class]="statusBadgeClass(salesReturn.statusInvoice.code)">{{ salesReturn.statusInvoice.name }}</span>
+        } @else {
+        Tạo phiếu trả hàng
+        }
+      </h1>
+      <span class="form-required-note">Trường có dấu <span class="text-danger">*</span> là bắt buộc</span>
+    </div>
+    <div class="card-body">
+      <!-- 1. Invoice -->
+      <section class="form-section">
+        <h2 class="form-section-title"><i class="bi bi-receipt"></i>Hóa đơn gốc</h2>
+        @if (isNew && !invoice) {
+        <div class="input-group list-search mb-2">
+          <input
+            type="search"
+            class="form-control"
+            placeholder="Nhập mã hóa đơn (VD: HD000001), tên hoặc SĐT khách"
+            aria-label="Tìm hóa đơn"
+            (input)="onInvoiceKeyword($event)"
+            (keydown.enter)="$event.preventDefault(); searchInvoices()"
+          />
+          <button type="button" class="btn btn-outline-primary" (click)="searchInvoices()">
+            <i class="bi bi-search me-1"></i>Tìm
+          </button>
+        </div>
+        <p class="form-text mt-0">Chỉ trả hàng cho hóa đơn đã hoàn thành.</p>
+        @if (invoiceResults.length) {
+        <div class="list-group mb-2">
+          @for (result of invoiceResults; track result.id) {
+          <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between" (click)="selectInvoice(result.id)">
+            <span><b>{{ result.code }}</b> · {{ result.customer?.name ?? 'Khách lẻ' }} · {{ result.invoiceCreateDate | date: "dd/MM/yyyy HH:mm" }}</span>
+            <span class="text-nowrap">{{ result.totalPrice | number: "1.0-0" }} ₫</span>
+          </button>
+          }
+        </div>
+        }
+        } @else {
+        <dl class="row mb-0">
+          <dt class="col-sm-3">Mã hóa đơn</dt>
+          <dd class="col-sm-9">{{ invoice?.code ?? salesReturn?.invoiceCode }}</dd>
+          <dt class="col-sm-3">Khách hàng</dt>
+          <dd class="col-sm-9">{{ (invoice?.customer ?? salesReturn?.customer)?.name ?? 'Khách lẻ' }}</dd>
+          @if (invoice) {
+          <dt class="col-sm-3">Tổng thanh toán</dt>
+          <dd class="col-sm-9">{{ invoice.totalPrice | number: "1.0-0" }} ₫ ({{ invoice.paymentMethod }})</dd>
+          }
+          @if (salesReturn) {
+          <dt class="col-sm-3">Nhân viên lập</dt>
+          <dd class="col-sm-9">{{ salesReturn.employee.name }} · {{ salesReturn.returnDate | date: "dd/MM/yyyy HH:mm" }}</dd>
+          }
+        </dl>
+        }
+      </section>
+
+      @if (invoice || salesReturn) {
+      <!-- 2. Return details -->
+      <section class="form-section">
+        <h2 class="form-section-title"><i class="bi bi-arrow-counterclockwise"></i>Thông tin trả hàng</h2>
+        <div class="row g-3">
+          <div class="col-12 col-xl-6">
+            <label class="form-label required" for="reason">Lý do trả hàng</label>
+            <input id="reason" type="text" class="form-control" placeholder="VD: Hàng lỗi, khách đổi ý..." formControlName="reason" />
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <label class="form-label" for="refundMethod">Hoàn tiền qua</label>
+            <select id="refundMethod" class="form-select" formControlName="refundMethod">
+              <option value="">Như hóa đơn gốc</option>
+              <option value="CASH">Tiền mặt</option>
+              <option value="CARD">Thẻ</option>
+              <option value="TRANSFER">Chuyển khoản</option>
+            </select>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <label class="form-label" for="statusInvoiceId">Trạng thái</label>
+            <select id="statusInvoiceId" class="form-select" formControlName="statusInvoiceId">
+              @if (isNew) {
+              <option value="">Chờ xử lý (mặc định)</option>
+              }
+              @for (status of statusOptions; track status.id) {
+              <option [value]="status.id">{{ status.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Lines -->
+      <section class="form-section">
+        <h2 class="form-section-title"><i class="bi bi-basket"></i>Sản phẩm trả lại</h2>
+        @if (editable) {
+        <p class="form-text mt-0">Hàng trả được nhập lại kho ngay khi lưu (trừ khi phiếu bị hủy). Đơn giá hoàn đã trừ giảm giá dòng và phần giảm giá hóa đơn.</p>
+        }
+        <div class="line-items table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th class="col-index">#</th>
+                <th>Sản phẩm</th>
+                @if (editable) {
+                <th class="col-amount">Đã mua</th>
+                <th class="col-amount">Còn được trả</th>
+                }
+                <th class="col-amount">Số lượng trả</th>
+                <th class="col-amount">Đơn giá hoàn</th>
+                <th class="col-amount">Thành tiền</th>
+              </tr>
+            </thead>
+            <tbody formArrayName="lines">
+              @for (line of lines().controls; track line; let idx = $index) {
+              <tr [formGroupName]="idx">
+                <td class="col-index">{{ idx + 1 }}</td>
+                <td>{{ line.value.productName }} <span class="text-secondary small">{{ line.value.productCode }}</span></td>
+                @if (editable) {
+                <td class="col-amount">{{ line.value.soldQuantity }}</td>
+                <td class="col-amount">{{ line.value.maxQuantity }}</td>
+                }
+                <td>
+                  <input type="number" min="0" [max]="line.value.maxQuantity" class="form-control" aria-label="Số lượng trả" formControlName="quantity" />
+                </td>
+                <td class="col-amount">{{ line.value.unitRefund | number: "1.0-0" }} ₫</td>
+                <td class="col-amount fw-semibold">{{ (line.getRawValue().quantity || 0) * line.value.unitRefund | number: "1.0-0" }} ₫</td>
+              </tr>
+              } @empty {
+              <tr>
+                <td colspan="7" class="line-empty">Hóa đơn không có sản phẩm.</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <dl class="voucher-summary mb-0">
+          <div class="summary-total">
+            <dt>{{ salesReturn && !editable ? 'Tiền hoàn' : 'Tiền hoàn (dự kiến)' }}</dt>
+            <dd>{{ (salesReturn && !editable ? salesReturn.refundAmount : refundPreview()) | number: "1.0-0" }} ₫</dd>
+          </div>
+        </dl>
+      </section>
+      }
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <div class="d-flex gap-2 justify-content-end form-group">
+      <a [routerLink]="['/home/sales-return']" class="btn btn-outline-secondary">Quay lại</a>
+      @if (invoice || (salesReturn && salesReturn.statusInvoice.code !== 'CANCELLED')) {
+      <button type="submit" class="btn btn-success" [disabled]="!form.valid">Xác nhận và lưu</button>
+      }
+    </div>
+  </div>
+</form>

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { StockOutInsertDTORequest } from '../dtos/request/stockouts/stockout-insert.dto';
 import { ApiResponse } from '../dtos/response/api-response/api-response.dto';
 import { StockoutDTOResponse } from '../dtos/response/stockouts/stockout.dto';
+import { PageResponse } from '../dtos/response/page/page-response.dto';
 import { ApiUrl } from '../environments/api-url';
 import { StockOutUpdateDTORequest } from './../dtos/request/stockouts/stockout-update.dto';
 
@@ -37,8 +38,8 @@ export class StockoutService {
 
   insert(
     stockOutInsertDTORequest: StockOutInsertDTORequest
-  ): Observable<ApiResponse<void>> {
-    return this.httpClient.post<ApiResponse<void>>(
+  ): Observable<ApiResponse<StockoutDTOResponse>> {
+    return this.httpClient.post<ApiResponse<StockoutDTOResponse>>(
       this.apiUrlInsert,
       stockOutInsertDTORequest,
       this.apiConfig
@@ -48,8 +49,8 @@ export class StockoutService {
   update(
     stockOutId: string,
     stockOutUpdateDTORequest: StockOutUpdateDTORequest
-  ): Observable<ApiResponse<void>> {
-    return this.httpClient.put<ApiResponse<void>>(
+  ): Observable<ApiResponse<StockoutDTOResponse>> {
+    return this.httpClient.put<ApiResponse<StockoutDTOResponse>>(
       `${this.apiUrlUpdate}/${stockOutId}`,
       stockOutUpdateDTORequest,
       this.apiConfig
@@ -65,5 +66,29 @@ export class StockoutService {
         params: params,
       }
     );
+  }
+
+  // Paged list for the list screen; keyword matches codes, names, phone numbers...
+  search(
+    keyword: string,
+    page: number,
+    size: number,
+    status?: string,
+  ): Observable<ApiResponse<PageResponse<StockoutDTOResponse>>> {
+    let params = new HttpParams().set('page', page).set('size', size);
+    if (keyword.trim()) params = params.set('keyword', keyword.trim());
+    if (status) params = params.set('status', status);
+    return this.httpClient.get<ApiResponse<PageResponse<StockoutDTOResponse>>>(
+      ApiUrl.stockout.search,
+      { headers: this.createHeaders(), params: params }
+    );
+  }
+
+  // Soft delete on the server: the rows stay for history and disappear from lists
+  delete(ids: string[]): Observable<ApiResponse<void>> {
+    return this.httpClient.delete<ApiResponse<void>>(ApiUrl.stockout.delete, {
+      headers: this.createHeaders(),
+      body: ids,
+    });
   }
 }

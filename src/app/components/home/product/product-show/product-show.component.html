@@ -8,6 +8,18 @@
         >
       </div>
       <div class="card-body">
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <div class="input-group flex-grow-1 list-search">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input
+              type="search"
+              class="form-control"
+              placeholder="Tìm theo mã, mã vạch, tên, hãng..."
+              aria-label="Tìm kiếm"
+              (input)="onKeyword($event)"
+            />
+          </div>
+        </div>
         <div class="border border-dark rounded-3 table-responsive">
           <table class="table table-striped align-middle custom-table m-0">
             <thead>
@@ -19,6 +31,8 @@
                 <th>Loại</th>
                 <th>Đơn vị tính</th>
                 <th>Hãng sản xuất</th>
+                <th>Giá bán</th>
+                <th>Xóa</th>
               </tr>
             </thead>
             <tbody class="text-center">
@@ -34,18 +48,31 @@
                     ></i
                   ></a>
                 </td>
-                <td id="productId">{{ product.id }}</td>
+                <td id="productId">{{ product.code }}</td>
                 <td>{{ product.name }}</td>
                 <td>{{ product.description }}</td>
                 <td>{{ product.productCategory.name }}</td>
                 <td>
                   {{ product.unit.name }}
                 </td>
-                <td>{{ product.brand.name }}</td>
+                <td>{{ product.brand?.name }}</td>
+                <td class="text-nowrap">{{ product.salePrice ?? 0 | number: "1.0-0" }} ₫</td>
+                <td>
+                  @if (canDelete()) {
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    aria-label="Xóa"
+                    (click)="delete(product)"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                  }
+                </td>
               </tr>
               }@empty {
               <tr>
-                <td colspan="7" class="text-center">
+                <td colspan="9" class="text-center">
                   <b>Hiện không có sản phẩm nào trong hệ thống !</b>
                 </td>
               </tr>
@@ -53,6 +80,12 @@
             </tbody>
           </table>
         </div>
+        <app-pager
+          [page]="page"
+          [totalPages]="totalPages"
+          [totalItems]="totalItems"
+          (pageChange)="load($event)"
+        />
       </div>
     </div>
   </div>

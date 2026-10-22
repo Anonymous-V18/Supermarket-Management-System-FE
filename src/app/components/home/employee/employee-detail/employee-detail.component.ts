@@ -33,7 +33,7 @@ export class EmployeeDetailComponent {
     name: ['', Validators.required],
     gender: ['', Validators.required],
     dob: ['', Validators.required],
-    phoneNumber: ['', [Validators.required, Validators.minLength(10)]],
+    phoneNumber: ['', [Validators.required, Validators.pattern(/^0[0-9]{9,10}$/)]],
     email: ['', [Validators.required, Validators.email]],
     positionId: ['', Validators.required],
     currentAddress: this.formBuilder.group({
@@ -217,7 +217,7 @@ export class EmployeeDetailComponent {
     return new EmployeeUpdateDTORequest(
       this.employeeUpdateForm.value.name,
       this.employeeUpdateForm.value.gender,
-      new Date(this.employeeUpdateForm.value.dob ?? Date.now()).toISOString(),
+      this.employeeUpdateForm.value.dob,
       this.employeeUpdateForm.value.phoneNumber,
       this.employeeUpdateForm.value.email,
       this.employeeUpdateForm.value.positionId,

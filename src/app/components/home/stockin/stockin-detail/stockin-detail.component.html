@@ -1,7 +1,7 @@
 <form [formGroup]="stockInUpdateForm" (ngSubmit)="onSubmit()">
   <div class="card mb-3">
     <div class="card-header card-header-actions">
-      <h1 class="card-title">Thông tin phiếu nhập kho</h1>
+      <h1 class="card-title">Phiếu nhập kho {{ stockInDTO.code }}</h1>
       <span class="form-required-note">
         Trường có dấu <span class="text-danger">*</span> là bắt buộc
       </span>
@@ -82,6 +82,7 @@
                 <th class="col-amount">Số lượng</th>
                 <th class="col-amount">Giá nhập (₫)</th>
                 <th class="col-amount">Giá bán (₫)</th>
+                <th class="col-lot">Số lô / HSD</th>
                 <th class="col-amount">Thành tiền</th>
                 <th class="col-action"><span class="visually-hidden">Xóa</span></th>
               </tr>
@@ -118,6 +119,23 @@
                       class="form-control"
                       aria-label="Giá bán"
                       formControlName="salePrice"
+                    />
+                  </td>
+                  <td class="col-lot">
+                    <input
+                      type="text"
+                      maxlength="50"
+                      class="form-control form-control-sm mb-1"
+                      placeholder="Số lô"
+                      aria-label="Số lô"
+                      formControlName="lotNumber"
+                    />
+                    <input
+                      type="date"
+                      class="form-control form-control-sm"
+                      aria-label="Hạn sử dụng"
+                      title="Hạn sử dụng (bỏ trống nếu không có)"
+                      formControlName="expiryDate"
                     />
                   </td>
                   <td class="col-amount fw-semibold">
@@ -191,6 +209,23 @@
                       class="form-control"
                       aria-label="Giá bán"
                       formControlName="salePrice"
+                    />
+                  </td>
+                  <td class="col-lot">
+                    <input
+                      type="text"
+                      maxlength="50"
+                      class="form-control form-control-sm mb-1"
+                      placeholder="Số lô"
+                      aria-label="Số lô"
+                      formControlName="lotNumber"
+                    />
+                    <input
+                      type="date"
+                      class="form-control form-control-sm"
+                      aria-label="Hạn sử dụng"
+                      title="Hạn sử dụng (bỏ trống nếu không có)"
+                      formControlName="expiryDate"
                     />
                   </td>
                   <td class="col-amount fw-semibold">

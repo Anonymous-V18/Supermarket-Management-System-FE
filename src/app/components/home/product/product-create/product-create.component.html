@@ -12,6 +12,10 @@
           <i class="bi bi-info-circle"></i>Thông tin chung
         </h2>
         <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label" for="barcode">Mã vạch</label>
+            <input id="barcode" type="text" class="form-control" formControlName="barcode" placeholder="VD: 8934673000011" />
+          </div>
           <div class="col-12">
             <label class="form-label required" for="name">Tên sản phẩm</label>
             <input
@@ -23,7 +27,7 @@
             />
           </div>
           <div class="col-12">
-            <label class="form-label required" for="description">Mô tả ngắn</label>
+            <label class="form-label" for="description">Mô tả ngắn</label>
             <input
               id="description"
               type="text"
@@ -33,7 +37,7 @@
             />
           </div>
           <div class="col-12">
-            <label class="form-label required" for="details">Thông tin bổ sung</label>
+            <label class="form-label" for="details">Thông tin bổ sung</label>
             <textarea
               id="details"
               rows="3"
@@ -67,9 +71,9 @@
             </select>
           </div>
           <div class="col-md-6 col-xl-3">
-            <label class="form-label required" for="brandId">Hãng sản xuất</label>
+            <label class="form-label" for="brandId">Hãng sản xuất</label>
             <select id="brandId" class="form-select" formControlName="brandId">
-              <option value="" disabled>-- Chọn hãng --</option>
+              <option value="">-- Không chọn --</option>
               @for (brand of brandDTOs; track brand) {
               <option value="{{ brand.id }}">{{ brand.name }}</option>
               }
@@ -85,9 +89,9 @@
             </select>
           </div>
           <div class="col-md-6 col-xl-3">
-            <label class="form-label required" for="supplierId">Nhà cung cấp chính</label>
+            <label class="form-label" for="supplierId">Nhà cung cấp chính</label>
             <select id="supplierId" class="form-select" formControlName="supplierId">
-              <option value="" disabled>-- Chọn nhà cung cấp --</option>
+              <option value="">-- Không chọn --</option>
               @for (supplier of supplierDTOs; track supplier) {
               <option value="{{ supplier.id }}">
                 {{ supplier.name }}
@@ -100,11 +104,11 @@
 
       <section class="form-section">
         <h2 class="form-section-title">
-          <i class="bi bi-shield-check"></i>Bảo hành và thuế
+          <i class="bi bi-shield-check"></i>Giá, thuế và bảo hành
         </h2>
         <div class="row g-3">
           <div class="col-md-6 col-xl-3">
-            <label class="form-label required" for="warranty">Thời gian bảo hành</label>
+            <label class="form-label" for="warranty">Thời gian bảo hành</label>
             <div class="input-group">
               <input
                 id="warranty"
@@ -128,6 +132,18 @@
               />
               <span class="input-group-text">%</span>
             </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <label class="form-label required" for="salePrice">Giá bán</label>
+            <div class="input-group">
+              <input id="salePrice" type="number" min="0" step="500" class="form-control" formControlName="salePrice" />
+              <span class="input-group-text">₫</span>
+            </div>
+            <small class="form-text">Phiếu nhập kho mới sẽ cập nhật lại giá bán.</small>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <label class="form-label required" for="minStock">Tồn tối thiểu</label>
+            <input id="minStock" type="number" min="0" class="form-control" formControlName="minStock" />
           </div>
         </div>
       </section>

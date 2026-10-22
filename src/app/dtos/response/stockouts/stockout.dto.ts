@@ -7,6 +7,7 @@ import { WarehouseDTResponse } from '../warehouses/warehouse.dto';
 
 export class StockoutDTOResponse {
   id: string;
+  code?: string;
   reason: string;
   totalProduct: number;
   totalPrice: number;
@@ -15,7 +16,8 @@ export class StockoutDTOResponse {
   supplier: SupplierDTOResponse;
   warehouse: WarehouseDTResponse;
   employee: EmployeeDTOResponse;
-  customer: CustomerDTOResponse;
+  // Missing for walk-in sales / stock-outs without a customer
+  customer?: CustomerDTOResponse;
   stockOutDetails: StockoutDetailDTOReponse[];
 
   constructor(
@@ -28,7 +30,7 @@ export class StockoutDTOResponse {
     supplier: SupplierDTOResponse,
     warehouse: WarehouseDTResponse,
     employee: EmployeeDTOResponse,
-    customer: CustomerDTOResponse,
+    customer: CustomerDTOResponse | undefined,
     stockOutDetails: StockoutDetailDTOReponse[]
   ) {
     this.id = id;

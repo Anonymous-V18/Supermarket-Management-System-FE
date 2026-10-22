@@ -21,6 +21,8 @@ import { ProductService } from '../../../../services/product.service';
 import { StatusInvoiceService } from '../../../../services/status-invoice.service';
 import { StockoutService } from '../../../../services/stockout.service';
 
+import { StockOutDetailInsertDTORequest } from '../../../../dtos/request/stockout-details/stockout-detail-insert.dto';
+import { StockOutDetailUpdateDTORequest } from '../../../../dtos/request/stockout-details/stockout-detail-update.dto';
 @Component({
   selector: 'app-stockout-detail',
   imports: [ReactiveFormsModule, RouterLink, DecimalPipe],
@@ -31,12 +33,13 @@ import { StockoutService } from '../../../../services/stockout.service';
 export class StockoutDetailComponent implements OnInit {
   private formBuilder = inject(FormBuilder);
   stockOutUpdateForm = this.formBuilder.group({
-    totalProduct: ['', [Validators.required, Validators.min(0)]],
-    totalPrice: ['', [Validators.required, Validators.min(0)]],
-    stockOutDate: ['', [Validators.required]],
+    // Display only: the server computes totals
+    totalProduct: [''],
+    totalPrice: [''],
+    stockOutDate: [''],
     statusInvoiceId: ['', [Validators.required]],
-    reason: ['', [Validators.required]],
-    customerId: ['', [Validators.required]],
+    reason: ['', [Validators.required, Validators.maxLength(255)]],
+    customerId: [''],
     stockOutDetailUpdateRequests: this.formBuilder.array([]),
     stockOutDetailInsertRequests: this.formBuilder.array([]),
   });
@@ -83,7 +86,7 @@ export class StockoutDetailComponent implements OnInit {
     this.stockoutService
       .update(this.stockOutId, this.mappingDataToDTORequest())
       .subscribe({
-        next: (response: ApiResponse<void>) => {
+        next: (response: ApiResponse<unknown>) => {
           this.toastrService.success(
             response.message,
             'Success !',
@@ -146,7 +149,9 @@ export class StockoutDetailComponent implements OnInit {
   getAllStatusInvoice() {
     this.statusInvoiceService.showAllNoParam().subscribe({
       next: (response: ApiResponse<StatusInvoiceDTOResponse[]>) => {
-        this.statusInvoiceDTOs = response.result;
+        this.statusInvoiceDTOs = response.result.filter((status) =>
+          this.allowedStatusCodes(this.stockOutDTO.statusInvoice.code).includes(status.code)
+        );
       },
       complete: () => {},
       error: (error: any) => {
@@ -322,19 +327,28 @@ export class StockoutDetailComponent implements OnInit {
   }
 
   mappingDataToDTORequest(): StockOutUpdateDTORequest {
+    const value = this.stockOutUpdateForm.value;
     return new StockOutUpdateDTORequest(
-      this.stockOutUpdateForm.value.totalProduct,
-      this.stockOutUpdateForm.value.totalPrice,
-      this.stockOutUpdateForm.value.reason,
-      new Date(
-        this.stockOutUpdateForm.value.stockOutDate ?? Date.now()
-      ).toISOString(),
-      this.stockOutUpdateForm.value.statusInvoiceId,
-      this.stockOutUpdateForm.value.stockOutDetailUpdateRequests,
-      this.stockOutUpdateForm.value.stockOutDetailInsertRequests,
-      this.stockOutUpdateForm.value.customerId
+      value.reason ?? '',
+      (value.stockOutDetailUpdateRequests ?? []) as StockOutDetailUpdateDTORequest[],
+      (value.stockOutDetailInsertRequests ?? []) as StockOutDetailInsertDTORequest[],
+      value.statusInvoiceId || null,
+      value.customerId || null,
+      value.stockOutDate ? new Date(value.stockOutDate).toISOString() : null
     );
   }
+
+  allowedStatusCodes(current: string): string[] {
+    switch (current) {
+      case 'PENDING':
+        return ['PENDING', 'COMPLETED', 'CANCELLED'];
+      case 'COMPLETED':
+        return ['COMPLETED', 'CANCELLED'];
+      default:
+        return ['CANCELLED'];
+    }
+  }
+
 
   mappingDataFromDTOResponse() {
     this.stockOutUpdateForm.patchValue({
@@ -346,7 +360,7 @@ export class StockoutDetailComponent implements OnInit {
       ),
       statusInvoiceId: this.stockOutDTO.statusInvoice.id,
       reason: this.stockOutDTO.reason,
-      customerId: this.stockOutDTO.customer.id,
+      customerId: this.stockOutDTO.customer?.id ?? '',
     });
     this.addStockOutDetailUpdateRequest();
   }

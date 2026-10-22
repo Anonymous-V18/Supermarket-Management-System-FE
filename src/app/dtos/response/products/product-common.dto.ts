@@ -3,6 +3,9 @@ import { UnitDTOResponse } from '../units/unit.dto';
 
 export class ProductCommonDetailDTOResponse {
   id: string;
+  code?: string;
+  barcode?: string;
+  availableQuantity?: number;
   name: string;
   vat: number;
   warranty: number;

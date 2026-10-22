@@ -5,6 +5,7 @@ import { WarehouseInsertDTORequest } from '../dtos/request/warehouses/warehouse-
 import { WarehouseUpdateDTORequest } from '../dtos/request/warehouses/warehouse-update.dto';
 import { ApiResponse } from '../dtos/response/api-response/api-response.dto';
 import { WarehouseDTResponse } from '../dtos/response/warehouses/warehouse.dto';
+import { PageResponse } from '../dtos/response/page/page-response.dto';
 import { ApiUrl } from '../environments/api-url';
 
 @Injectable({
@@ -64,6 +65,20 @@ export class WarehouseService {
         headers: this.createHeaders(),
         params: params,
       }
+    );
+  }
+
+  // Paged list for the list screen; keyword matches codes, names, phone numbers...
+  search(
+    keyword: string,
+    page: number,
+    size: number,
+  ): Observable<ApiResponse<PageResponse<WarehouseDTResponse>>> {
+    let params = new HttpParams().set('page', page).set('size', size);
+    if (keyword.trim()) params = params.set('keyword', keyword.trim());
+    return this.httpClient.get<ApiResponse<PageResponse<WarehouseDTResponse>>>(
+      ApiUrl.warehouse.search,
+      { headers: this.createHeaders(), params: params }
     );
   }
 }

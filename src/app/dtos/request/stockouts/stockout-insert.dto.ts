@@ -1,32 +1,27 @@
-import { StockOutDetailInsertDTORequest } from "../stockout-details/stockout-detail-insert.dto";
+import { StockOutDetailInsertDTORequest } from '../stockout-details/stockout-detail-insert.dto';
 
+// Totals, prices and dates are computed by the server; goods are valued at cost
 export class StockOutInsertDTORequest {
-  totalProduct: number;
-  totalPrice: number;
-  reason: string;
-  stockOutDate: Date;
-  statusInvoiceId: string;
-  stockOutDetailInsertRequests: StockOutDetailInsertDTORequest[];
-  customerId: string;
   warehouseId: string;
+  reason: string;
+  stockOutDetailInsertRequests: StockOutDetailInsertDTORequest[];
+  statusInvoiceId?: string | null;
+  customerId?: string | null;
+  stockOutDate?: string | null;
 
   constructor(
-    totalProduct: any,
-    totalPrice: any,
-    reason: any,
-    stockOutDate: any,
-    statusInvoiceId: any,
-    stockOutDetailInsertRequests: any,
-    customerId: any,
-    warehouseId: any
+    warehouseId: string,
+    reason: string,
+    stockOutDetailInsertRequests: StockOutDetailInsertDTORequest[],
+    statusInvoiceId?: string | null,
+    customerId?: string | null,
+    stockOutDate?: string | null
   ) {
-    this.totalProduct = totalProduct;
-    this.totalPrice = totalPrice;
-    this.reason = reason;
-    this.stockOutDate = stockOutDate;
-    this.statusInvoiceId = statusInvoiceId;
-    this.stockOutDetailInsertRequests = stockOutDetailInsertRequests;
-    this.customerId = customerId;
     this.warehouseId = warehouseId;
+    this.reason = reason;
+    this.stockOutDetailInsertRequests = stockOutDetailInsertRequests;
+    this.statusInvoiceId = statusInvoiceId;
+    this.customerId = customerId;
+    this.stockOutDate = stockOutDate;
   }
 }

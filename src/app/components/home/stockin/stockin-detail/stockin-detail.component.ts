@@ -17,6 +17,16 @@ import { ProductService } from '../../../../services/product.service';
 import { StatusInvoiceService } from '../../../../services/status-invoice.service';
 import { StockinService } from './../../../../services/stockin.service';
 
+import { StockInDetailInsertDTORequest } from '../../../../dtos/request/stockin-details/stockin-detail-insert.dto';
+import { StockInDetailUpdateDTORequest } from '../../../../dtos/request/stockin-details/stockin-detail-update.dto';
+// Empty lot / expiry inputs are sent as null, not as empty strings
+const withLotFields = (lines: any[]) =>
+  lines.map((line) => ({
+    ...line,
+    lotNumber: line.lotNumber?.trim() || null,
+    expiryDate: line.expiryDate || null,
+  }));
+
 @Component({
   selector: 'app-stockin-detail',
   imports: [ReactiveFormsModule, RouterLink, DecimalPipe],
@@ -27,9 +37,10 @@ import { StockinService } from './../../../../services/stockin.service';
 export class StockinDetailComponent implements OnInit {
   private formBuilder = inject(FormBuilder);
   stockInUpdateForm = this.formBuilder.group({
-    totalProduct: ['', [Validators.required, Validators.min(0)]],
-    totalPrice: ['', [Validators.required, Validators.min(0)]],
-    stockInDate: ['', [Validators.required]],
+    // Display only: the server computes totals
+    totalProduct: [''],
+    totalPrice: [''],
+    stockInDate: [''],
     statusInvoiceId: ['', [Validators.required]],
     stockInDetailUpdateRequests: this.formBuilder.array([]),
     stockInDetailInsertRequests: this.formBuilder.array([]),
@@ -73,7 +84,7 @@ export class StockinDetailComponent implements OnInit {
     this.stockinService
       .update(this.stockInId, this.mappingDataToDTORequest())
       .subscribe({
-        next: (response: ApiResponse<void>) => {
+        next: (response: ApiResponse<unknown>) => {
           this.toastrService.success(
             response.message,
             'Success !',
@@ -115,7 +126,9 @@ export class StockinDetailComponent implements OnInit {
   getAllStatusInvoice() {
     this.statusInvoiceService.showAllNoParam().subscribe({
       next: (response: ApiResponse<StatusInvoiceDTOResponse[]>) => {
-        this.statusInvoiceDTOs = response.result;
+        this.statusInvoiceDTOs = response.result.filter((status) =>
+          this.allowedStatusCodes(this.stockInDTO.statusInvoice.code).includes(status.code)
+        );
       },
       complete: () => {},
       error: (error: any) => {
@@ -172,6 +185,8 @@ export class StockinDetailComponent implements OnInit {
           stockInDetail.salePrice,
           [Validators.required, Validators.min(1)],
         ],
+        lotNumber: [stockInDetail.lotNumber ?? '', [Validators.maxLength(50)]],
+        expiryDate: [stockInDetail.expiryDate ?? ''],
         productName: [stockInDetail.product.name],
       });
       this.stockInDetailUpdate().push(detailGroup);
@@ -184,6 +199,9 @@ export class StockinDetailComponent implements OnInit {
       quantity: [0, [Validators.required, Validators.min(1)]],
       inputPrice: [0, [Validators.required, Validators.min(1)]],
       salePrice: ['', [Validators.required, Validators.min(1)]],
+      // Optional: only for goods that expire
+      lotNumber: ['', [Validators.maxLength(50)]],
+      expiryDate: [''],
     });
     this.stockInDetailInsert().push(detailGroup);
   }
@@ -257,17 +275,26 @@ export class StockinDetailComponent implements OnInit {
   }
 
   mappingDataToDTORequest(): StockInUpdateDTORequest {
+    const value = this.stockInUpdateForm.value;
     return new StockInUpdateDTORequest(
-      this.stockInUpdateForm.value.totalProduct,
-      this.stockInUpdateForm.value.totalPrice,
-      new Date(
-        this.stockInUpdateForm.value.stockInDate ?? Date.now()
-      ).toISOString(),
-      this.stockInUpdateForm.value.statusInvoiceId,
-      this.stockInUpdateForm.value.stockInDetailUpdateRequests,
-      this.stockInUpdateForm.value.stockInDetailInsertRequests
+      withLotFields(value.stockInDetailUpdateRequests ?? []) as StockInDetailUpdateDTORequest[],
+      withLotFields(value.stockInDetailInsertRequests ?? []) as StockInDetailInsertDTORequest[],
+      value.statusInvoiceId || null,
+      value.stockInDate ? new Date(value.stockInDate).toISOString() : null
     );
   }
+
+  allowedStatusCodes(current: string): string[] {
+    switch (current) {
+      case 'PENDING':
+        return ['PENDING', 'COMPLETED', 'CANCELLED'];
+      case 'COMPLETED':
+        return ['COMPLETED', 'CANCELLED'];
+      default:
+        return ['CANCELLED'];
+    }
+  }
+
 
   mappingDataFromDTOResponse() {
     this.stockInUpdateForm.patchValue({

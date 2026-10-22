@@ -82,11 +82,47 @@
       </li>
       <li
         routerLinkActive="active current-page"
+        [hidden]="!hasRole(['ADMIN', 'STOREKEEPER'])"
+      >
+        <a [routerLink]="['/home/stock-transfer']">
+          <i class="fa fa-right-left"></i>
+          <span class="menu-text">Chuyển kho</span>
+        </a>
+      </li>
+      <li
+        routerLinkActive="active current-page"
+        [hidden]="!hasRole(['ADMIN', 'STOREKEEPER'])"
+      >
+        <a [routerLink]="['/home/stock-take']">
+          <i class="fa fa-clipboard-check"></i>
+          <span class="menu-text">Kiểm kê</span>
+        </a>
+      </li>
+      <li
+        routerLinkActive="active current-page"
         [hidden]="!hasRole(['ADMIN', 'SALESMAN'])"
       >
         <a [routerLink]="['/home/invoice']">
           <i class="fa fa-file-invoice-dollar"></i>
           <span class="menu-text">Bán hàng</span>
+        </a>
+      </li>
+      <li
+        routerLinkActive="active current-page"
+        [hidden]="!hasRole(['ADMIN', 'SALESMAN', 'ACCOUNTING_STAFF'])"
+      >
+        <a [routerLink]="['/home/sales-return']">
+          <i class="fa fa-rotate-left"></i>
+          <span class="menu-text">Trả hàng</span>
+        </a>
+      </li>
+      <li
+        routerLinkActive="active current-page"
+        [hidden]="!hasRole(['ADMIN', 'ACCOUNTING_STAFF', 'STOREKEEPER'])"
+      >
+        <a [routerLink]="['/home/report']">
+          <i class="fa fa-chart-line"></i>
+          <span class="menu-text">Báo cáo</span>
         </a>
       </li>
       <li class="menu-disabled">
@@ -96,6 +132,24 @@
           <span class="badge border border-danger text-danger rounded-5 ms-2"
             >Sắp ra mắt</span
           >
+        </a>
+      </li>
+      <li
+        routerLinkActive="active current-page"
+        [hidden]="!hasRole(['ADMIN'])"
+      >
+        <a [routerLink]="['/home/checklist-item']">
+          <i class="fa fa-list-check"></i>
+          <span class="menu-text">Checklist ca</span>
+        </a>
+      </li>
+      <li
+        routerLinkActive="active current-page"
+        [hidden]="!hasRole(['ADMIN'])"
+      >
+        <a [routerLink]="['/home/audit-log']">
+          <i class="fa fa-clock-rotate-left"></i>
+          <span class="menu-text">Nhật ký hệ thống</span>
         </a>
       </li>
       <li routerLinkActive="active current-page">

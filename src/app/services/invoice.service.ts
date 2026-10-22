@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { InvoiceUpdateDTORequest } from '../dtos/request/invoices/invoice-update.dto';
 import { ApiResponse } from '../dtos/response/api-response/api-response.dto';
 import { InvoiceDTOResponse } from '../dtos/response/invoices/invoice.dto';
+import { PageResponse } from '../dtos/response/page/page-response.dto';
 import { ApiUrl } from '../environments/api-url';
 import { InvoiceInsertDTORequest } from './../dtos/request/invoices/invoice-insert.dto';
 
@@ -37,8 +38,8 @@ export class InvoiceService {
 
   insert(
     invoiceInsertDTORequest: InvoiceInsertDTORequest
-  ): Observable<ApiResponse<void>> {
-    return this.httpClient.post<ApiResponse<void>>(
+  ): Observable<ApiResponse<InvoiceDTOResponse>> {
+    return this.httpClient.post<ApiResponse<InvoiceDTOResponse>>(
       this.apiUrlInsert,
       invoiceInsertDTORequest,
       this.apiConfig
@@ -48,8 +49,8 @@ export class InvoiceService {
   update(
     invoiceId: string,
     invoiceUpdateDTORequest: InvoiceUpdateDTORequest
-  ): Observable<ApiResponse<void>> {
-    return this.httpClient.put<ApiResponse<void>>(
+  ): Observable<ApiResponse<InvoiceDTOResponse>> {
+    return this.httpClient.put<ApiResponse<InvoiceDTOResponse>>(
       `${this.apiUrlUpdate}/${invoiceId}`,
       invoiceUpdateDTORequest,
       this.apiConfig
@@ -66,5 +67,28 @@ export class InvoiceService {
       }
     );
   }
-  
+
+  // Paged list for the list screen; keyword matches codes, names, phone numbers...
+  search(
+    keyword: string,
+    page: number,
+    size: number,
+    status?: string,
+  ): Observable<ApiResponse<PageResponse<InvoiceDTOResponse>>> {
+    let params = new HttpParams().set('page', page).set('size', size);
+    if (keyword.trim()) params = params.set('keyword', keyword.trim());
+    if (status) params = params.set('status', status);
+    return this.httpClient.get<ApiResponse<PageResponse<InvoiceDTOResponse>>>(
+      ApiUrl.invoice.search,
+      { headers: this.createHeaders(), params: params }
+    );
+  }
+
+  // Soft delete on the server: the rows stay for history and disappear from lists
+  delete(ids: string[]): Observable<ApiResponse<void>> {
+    return this.httpClient.delete<ApiResponse<void>>(ApiUrl.invoice.delete, {
+      headers: this.createHeaders(),
+      body: ids,
+    });
+  }
 }

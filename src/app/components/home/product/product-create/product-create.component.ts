@@ -24,16 +24,19 @@ import { UnitService } from '../../../../services/unit.service';
 export class ProductCreateComponent implements OnInit {
   private formBuilder = inject(FormBuilder);
   productCreateForm = this.formBuilder.group({
-    name: ['', Validators.required],
-    description: ['', Validators.required],
-    details: ['', Validators.required],
-    warranty: [0, [Validators.required, Validators.min(0)]],
-    vat: [0, [Validators.required, Validators.min(0)]],
+    name: ['', [Validators.required, Validators.maxLength(255)]],
+    barcode: ['', [Validators.maxLength(50), Validators.pattern(/^[0-9A-Za-z-]*$/)]],
+    description: ['', Validators.maxLength(255)],
+    details: ['', Validators.maxLength(255)],
+    warranty: [0, [Validators.min(0)]],
+    vat: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
     image: ['none-image'],
+    salePrice: [0, [Validators.required, Validators.min(0)]],
+    minStock: [0, [Validators.required, Validators.min(0)]],
     productCategoryId: ['', Validators.required],
-    supplierId: ['', Validators.required],
+    supplierId: [''],
     unitId: ['', Validators.required],
-    brandId: ['', Validators.required],
+    brandId: [''],
   });
   private toastrService = inject(ToastrService);
   private toastrConfig = {
@@ -144,17 +147,21 @@ export class ProductCreateComponent implements OnInit {
   }
 
   mappingDataToDTORequest(): ProductDTORequest {
+    const value = this.productCreateForm.value;
     return new ProductDTORequest(
-      this.productCreateForm.value.name,
-      this.productCreateForm.value.description,
-      this.productCreateForm.value.details,
-      this.productCreateForm.value.warranty,
-      this.productCreateForm.value.vat,
-      this.productCreateForm.value.image,
-      this.productCreateForm.value.productCategoryId,
-      this.productCreateForm.value.supplierId,
-      this.productCreateForm.value.unitId,
-      this.productCreateForm.value.brandId
+      value.name ?? '',
+      value.barcode || null,
+      value.description || null,
+      value.details || null,
+      value.warranty ?? null,
+      Number(value.vat) || 0,
+      value.image || null,
+      Number(value.salePrice) || 0,
+      Number(value.minStock) || 0,
+      value.productCategoryId ?? '',
+      value.supplierId || null,
+      value.unitId ?? '',
+      value.brandId || null
     );
   }
 }

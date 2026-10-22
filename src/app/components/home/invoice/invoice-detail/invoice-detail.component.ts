@@ -21,6 +21,9 @@ import { StatusInvoiceService } from '../../../../services/status-invoice.servic
 import { InvoiceDTOResponse } from './../../../../dtos/response/invoices/invoice.dto';
 import { InvoiceService } from './../../../../services/invoice.service';
 
+import { InvoiceDetailInsertDTORequest } from '../../../../dtos/request/invoice-details/invoice-detail-insert.dto';
+import { InvoiceDetailUpdateDTORequest } from '../../../../dtos/request/invoice-details/invoice-detail-update.dto';
+import { lineTotal } from '../../../../utils/money';
 @Component({
   selector: 'app-invoice-detail',
   imports: [RouterLink, ReactiveFormsModule, DecimalPipe],
@@ -30,12 +33,16 @@ import { InvoiceService } from './../../../../services/invoice.service';
 })
 export class InvoiceDetailComponent {
   private formBuilder = inject(FormBuilder);
+  // totalProduct / totalPrice / invoiceCreateDate are display only; the server owns them
   invoiceUpdateForm = this.formBuilder.group({
-    totalProduct: ['', [Validators.required, Validators.min(0)]],
-    totalPrice: ['', [Validators.required, Validators.min(0)]],
-    invoiceCreateDate: ['', [Validators.required]],
+    totalProduct: [''],
+    totalPrice: [''],
+    invoiceCreateDate: [''],
     statusInvoiceId: ['', [Validators.required]],
-    customerId: ['', [Validators.required]],
+    customerId: [''],
+    discount: [0, [Validators.min(0)]],
+    paymentMethod: ['CASH' as 'CASH' | 'CARD' | 'TRANSFER'],
+    amountPaid: [null as number | null, [Validators.min(0)]],
     invoiceDetailUpdateRequests: this.formBuilder.array([]),
     invoiceDetailInsertRequests: this.formBuilder.array([]),
   });
@@ -82,10 +89,10 @@ export class InvoiceDetailComponent {
     this.invoiceService
       .update(this.invoiceId, this.mappingDataToDTORequest())
       .subscribe({
-        next: (response: ApiResponse<void>) => {
+        next: (response: ApiResponse<InvoiceDTOResponse>) => {
           this.toastrService.success(
             response.message,
-            'Success !',
+            'Thành công !',
             this.toastrConfig
           );
           this.router.navigate(['/home/invoice']);
@@ -130,12 +137,13 @@ export class InvoiceDetailComponent {
     this.productService.getCommonDetail(productId, warehouseId).subscribe({
       next: (response: ApiResponse<ProductCommonDetailDTOResponse>) => {
         this.productCommonDetailDTOResponse = response.result;
-        this.invoiceDetailInsert()
-          .at(index)
-          .get('salePrice')
-          ?.setValue(this.productCommonDetailDTOResponse.salePrice, {
-            emitEvent: false,
-          });
+        const line = this.invoiceDetailInsert().at(index) as FormGroup;
+        line.get('salePrice')?.setValue(this.productCommonDetailDTOResponse.salePrice, {
+          emitEvent: false,
+        });
+        this.updateSubTotalPriceInDetail(line);
+        this.updateTotalProduct();
+        this.updateTotalPrice();
       },
       complete: () => {},
       error: (error: any) => {},
@@ -145,7 +153,10 @@ export class InvoiceDetailComponent {
   getAllStatusInvoice() {
     this.statusInvoiceService.showAllNoParam().subscribe({
       next: (response: ApiResponse<StatusInvoiceDTOResponse[]>) => {
-        this.statusInvoiceDTOs = response.result;
+        // Only the current status and the ones it may move to
+        this.statusInvoiceDTOs = response.result.filter((status) =>
+          this.allowedStatusCodes().includes(status.code)
+        );
       },
       complete: () => {},
       error: (error: any) => {
@@ -210,21 +221,18 @@ export class InvoiceDetailComponent {
           invoiceDetail.quantity,
           [Validators.required, Validators.min(1)],
         ],
+        discountPercent: [
+          invoiceDetail.discountPercent ?? 0,
+          [Validators.min(0), Validators.max(100)],
+        ],
         salePrice: [invoiceDetail.salePrice],
         subTotalPrice: [
-          Number(invoiceDetail.quantity * invoiceDetail.salePrice),
+          invoiceDetail.lineTotal ??
+            lineTotal(invoiceDetail.salePrice, invoiceDetail.quantity, 0),
         ],
-        productName: [invoiceDetail.product.name],
+        productName: [`${invoiceDetail.product.code ?? ''} - ${invoiceDetail.product.name}`],
       });
-      detailGroup.get('quantity')?.valueChanges.subscribe({
-        next: () => {
-          this.updateSubTotalPriceInDetail(detailGroup);
-          this.updateTotalProduct();
-          this.updateTotalPrice();
-        },
-        complete: () => {},
-        error: (error: any) => {},
-      });
+      this.watchLine(detailGroup);
       this.invoiceDetailUpdate().push(detailGroup);
     });
   }
@@ -232,19 +240,12 @@ export class InvoiceDetailComponent {
   addInvoiceDetailInsertRequest() {
     var detailGroup = this.formBuilder.group({
       productId: ['', [Validators.required]],
-      quantity: [0, [Validators.required, Validators.min(0)]],
-      salePrice: [0, [Validators.required, Validators.min(0)]],
-      subTotalPrice: [0, [Validators.required, Validators.min(0)]],
+      quantity: [1, [Validators.required, Validators.min(1)]],
+      discountPercent: [0, [Validators.min(0), Validators.max(100)]],
+      salePrice: [0],
+      subTotalPrice: [0],
     });
-    detailGroup.get('quantity')?.valueChanges.subscribe({
-      next: () => {
-        this.updateSubTotalPriceInDetail(detailGroup);
-        this.updateTotalProduct();
-        this.updateTotalPrice();
-      },
-      complete: () => {},
-      error: (error: any) => {},
-    });
+    this.watchLine(detailGroup);
     this.invoiceDetailInsert().push(detailGroup);
   }
 
@@ -255,8 +256,8 @@ export class InvoiceDetailComponent {
       this.invoiceDetailInsert().removeAt(index);
     } else {
       this.toastrService.warning(
-        "Can't delete last invoice detail",
-        'Warning !',
+        'Hóa đơn phải có ít nhất một sản phẩm',
+        'Cảnh báo !',
         this.toastrConfig
       );
     }
@@ -269,8 +270,8 @@ export class InvoiceDetailComponent {
       this.invoiceDetailUpdate().removeAt(index);
     } else {
       this.toastrService.warning(
-        "Can't delete last invoice detail",
-        'Warning !',
+        'Hóa đơn phải có ít nhất một sản phẩm',
+        'Cảnh báo !',
         this.toastrConfig
       );
     }
@@ -313,23 +314,76 @@ export class InvoiceDetailComponent {
   }
 
   updateSubTotalPriceInDetail(item: FormGroup) {
-    var subTotal = item.get('quantity')?.value * item.get('salePrice')?.value;
     item
       .get('subTotalPrice')
-      ?.setValue(subTotal.toString(), { emitEvent: false });
+      ?.setValue(
+        lineTotal(
+          item.value.salePrice,
+          item.get('quantity')?.value,
+          item.get('discountPercent')?.value
+        ),
+        { emitEvent: false }
+      );
+  }
+
+  // Lines, customer and payment can only change while the invoice is pending
+  isEditable(): boolean {
+    return this.invoiceDTO?.statusInvoice.code === 'PENDING';
+  }
+
+  allowedStatusCodes(): string[] {
+    switch (this.invoiceDTO?.statusInvoice.code) {
+      case 'PENDING':
+        return ['PENDING', 'COMPLETED', 'CANCELLED'];
+      case 'COMPLETED':
+        return ['COMPLETED', 'CANCELLED'];
+      default:
+        return ['CANCELLED'];
+    }
+  }
+
+  // Preview of what the customer pays; the server recomputes on save
+  total(): number {
+    const subtotal = Number(this.invoiceUpdateForm.value.totalPrice) || 0;
+    return Math.max(subtotal - (Number(this.invoiceUpdateForm.getRawValue().discount) || 0), 0);
+  }
+
+  private watchLine(line: FormGroup) {
+    const refresh = () => {
+      this.updateSubTotalPriceInDetail(line);
+      this.updateTotalProduct();
+      this.updateTotalPrice();
+    };
+    line.get('quantity')?.valueChanges.subscribe(refresh);
+    line.get('discountPercent')?.valueChanges.subscribe(refresh);
   }
 
   mappingDataToDTORequest(): InvoiceUpdateDTORequest {
+    const value = this.invoiceUpdateForm.getRawValue();
     return new InvoiceUpdateDTORequest(
-      this.invoiceUpdateForm.value.totalProduct,
-      this.invoiceUpdateForm.value.totalPrice,
-      this.invoiceUpdateForm.value.statusInvoiceId,
-      new Date(
-        this.invoiceUpdateForm.value.invoiceCreateDate ?? Date.now()
-      ).toISOString(),
-      this.invoiceUpdateForm.value.invoiceDetailUpdateRequests,
-      this.invoiceUpdateForm.value.invoiceDetailInsertRequests,
-      this.invoiceUpdateForm.value.customerId
+      this.invoiceDetailUpdate().controls.map(
+        (line) =>
+          new InvoiceDetailUpdateDTORequest(
+            line.value.id,
+            Number(line.value.quantity),
+            Number(line.value.discountPercent) || 0
+          )
+      ),
+      this.invoiceDetailInsert().controls.map(
+        (line) =>
+          new InvoiceDetailInsertDTORequest(
+            line.value.productId,
+            Number(line.value.quantity),
+            Number(line.value.discountPercent) || 0
+          )
+      ),
+      value.statusInvoiceId || null,
+      value.customerId || null,
+      Number(value.discount) || 0,
+      value.paymentMethod ?? 'CASH',
+      value.amountPaid === null || value.amountPaid === undefined
+        ? null
+        : Number(value.amountPaid)
     );
   }
 
@@ -339,11 +393,19 @@ export class InvoiceDetailComponent {
       totalPrice: this.invoiceDTO.totalPrice.toString(),
       invoiceCreateDate: this.dataPipe.transform(
         this.invoiceDTO.invoiceCreateDate,
-        'yyyy-MM-ddTHH:mm:ss'
+        'dd/MM/yyyy HH:mm'
       ),
-      customerId: this.invoiceDTO.customer.id,
+      customerId: this.invoiceDTO.customer?.id ?? '',
       statusInvoiceId: this.invoiceDTO.statusInvoice.id,
+      discount: this.invoiceDTO.discount ?? 0,
+      paymentMethod: this.invoiceDTO.paymentMethod ?? 'CASH',
+      amountPaid: this.invoiceDTO.amountPaid ?? null,
     });
     this.addInvoiceDetailUpdateRequest();
+    if (!this.isEditable()) {
+      ['customerId', 'discount', 'paymentMethod', 'amountPaid', 'invoiceDetailUpdateRequests'].forEach(
+        (name) => this.invoiceUpdateForm.get(name)?.disable({ emitEvent: false })
+      );
+    }
   }
 }

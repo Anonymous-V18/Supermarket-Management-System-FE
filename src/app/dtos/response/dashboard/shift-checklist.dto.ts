@@ -1,3 +1,25 @@
+export class ChecklistItemDTOResponse {
+  code: string;
+  label: string;
+  groupCode: 'START' | 'END';
+  sortOrder: number;
+  checked: boolean;
+
+  constructor(
+    code: string,
+    label: string,
+    groupCode: 'START' | 'END',
+    sortOrder: number,
+    checked: boolean
+  ) {
+    this.code = code;
+    this.label = label;
+    this.groupCode = groupCode;
+    this.sortOrder = sortOrder;
+    this.checked = checked;
+  }
+}
+
 // Fields left null by the backend are omitted from the JSON (@JsonInclude NON_NULL).
 export class ShiftChecklistDTOResponse {
   id?: string;
@@ -5,11 +27,11 @@ export class ShiftChecklistDTOResponse {
   workDate: string; // yyyy-MM-dd
   shiftCode: string;
   shiftName: string;
-  checkedItemIds: string[];
+  checkedItemIds: string[]; // checklist item codes
+  // Every active task in display order; the list is managed in the checklist_item table.
+  items: ChecklistItemDTOResponse[];
   isCompleted: boolean;
   completedPercent: number;
-  openingCash?: number;
-  closingCash?: number;
   notes?: string;
 
   constructor(
@@ -18,11 +40,10 @@ export class ShiftChecklistDTOResponse {
     shiftCode: string,
     shiftName: string,
     checkedItemIds: string[],
+    items: ChecklistItemDTOResponse[],
     isCompleted: boolean,
     completedPercent: number,
     id?: string,
-    openingCash?: number,
-    closingCash?: number,
     notes?: string
   ) {
     this.id = id;
@@ -31,10 +52,9 @@ export class ShiftChecklistDTOResponse {
     this.shiftCode = shiftCode;
     this.shiftName = shiftName;
     this.checkedItemIds = checkedItemIds;
+    this.items = items;
     this.isCompleted = isCompleted;
     this.completedPercent = completedPercent;
-    this.openingCash = openingCash;
-    this.closingCash = closingCash;
     this.notes = notes;
   }
 }

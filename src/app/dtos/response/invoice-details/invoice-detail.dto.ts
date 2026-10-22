@@ -2,6 +2,8 @@ import { ProductDTOResponse } from '../products/product.dto';
 
 export class InvoiceDetailDTOResponse {
   id: string;
+  discountPercent?: number;
+  lineTotal?: number;
   quantity: number;
   inputPrice: number;
   salePrice: number;

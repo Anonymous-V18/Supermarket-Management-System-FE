@@ -1,0 +1,81 @@
+<div class="row">
+  <div class="col-12">
+    <div class="card mb-4">
+      <div class="card-header card-header-actions">
+        <h1 class="card-title">Danh sách phiếu kiểm kê</h1>
+        @if (canWrite()) {
+        <a [routerLink]="['/home/stock-take/create']" class="btn btn-primary"
+          ><i class="bi bi-plus-square"></i>&nbsp;&nbsp;Tạo phiếu kiểm kê</a
+        >
+        }
+      </div>
+      <div class="card-body">
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <div class="input-group flex-grow-1 list-search">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input
+              type="search"
+              class="form-control"
+              placeholder="Tìm theo mã phiếu, kho, ghi chú..."
+              aria-label="Tìm kiếm"
+              (input)="onKeyword($event)"
+            />
+          </div>
+          <select class="form-select w-auto" aria-label="Lọc theo trạng thái" (change)="onStatus($event)">
+            <option value="">Tất cả trạng thái</option>
+            <option value="PENDING">Đang kiểm</option>
+            <option value="COMPLETED">Đã cân bằng kho</option>
+            <option value="CANCELLED">Đã hủy</option>
+          </select>
+        </div>
+        <div class="border border-dark rounded-3 table-responsive">
+          <table class="table table-striped align-middle custom-table m-0">
+            <thead>
+              <tr class="text-center">
+                <th>Xem chi tiết</th>
+                <th>Mã phiếu</th>
+                <th>Kho</th>
+                <th>Ngày kiểm</th>
+                <th>Số mặt hàng</th>
+                <th>Chênh lệch</th>
+                <th>Trạng thái</th>
+                <th>Xóa</th>
+              </tr>
+            </thead>
+            <tbody class="text-center">
+              @for (item of items; track item.id) {
+              <tr>
+                <td>
+                  <a [routerLink]="['/home/stock-take/detail']" [queryParams]="{ id: item.id }" aria-label="Xem chi tiết"
+                    ><i class="bi bi-info-circle-fill"></i
+                  ></a>
+                </td>
+                <td>{{ item.code }}</td>
+                <td>{{ item.warehouse.name }}</td>
+                <td>{{ item.stockTakeDate | date: "dd/MM/yyyy HH:mm" }}</td>
+                <td>{{ item.stockTakeDetails.length }}</td>
+                <td class="fw-semibold">{{ item.totalDifference > 0 ? '+' : '' }}{{ item.totalDifference | number }}</td>
+                <td>
+                  <span [class]="statusBadgeClass(item.statusInvoice.code)">{{ statusName(item.statusInvoice.code, item.statusInvoice.name) }}</span>
+                </td>
+                <td>
+                  @if (canWrite() && item.statusInvoice.code !== 'COMPLETED') {
+                  <button type="button" class="btn btn-sm btn-outline-danger" aria-label="Xóa" (click)="delete(item)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                  }
+                </td>
+              </tr>
+              } @empty {
+              <tr>
+                <td colspan="8" class="text-center"><b>Chưa có phiếu kiểm kê nào !</b></td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <app-pager [page]="page" [totalPages]="totalPages" [totalItems]="totalItems" (pageChange)="load($event)" />
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,18 +1,15 @@
 export class InvoiceDetailInsertDTORequest {
   productId: string;
   quantity: number;
-  promotionalPrice: number;
-  percentDiscount: number;
+  discountPercent: number;
 
   constructor(
     productId: string,
     quantity: number,
-    promotionalPrice: number,
-    percentDiscount: number
+    discountPercent: number = 0
   ) {
     this.productId = productId;
     this.quantity = quantity;
-    this.promotionalPrice = promotionalPrice;
-    this.percentDiscount = percentDiscount;
+    this.discountPercent = discountPercent;
   }
 }

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { SupplierUpdateDTORequest } from '../dtos/request/suppliers/supplier-update.dto';
 import { ApiResponse } from '../dtos/response/api-response/api-response.dto';
 import { SupplierDTOResponse } from '../dtos/response/suppliers/supplier.dto';
+import { PageResponse } from '../dtos/response/page/page-response.dto';
 import { ApiUrl } from '../environments/api-url';
 import { SupplierInsertDTORequest } from './../dtos/request/suppliers/supplier-insert.dto';
 
@@ -67,4 +68,17 @@ export class SupplierService {
     );
   }
 
+  // Paged list for the list screen; keyword matches codes, names, phone numbers...
+  search(
+    keyword: string,
+    page: number,
+    size: number,
+  ): Observable<ApiResponse<PageResponse<SupplierDTOResponse>>> {
+    let params = new HttpParams().set('page', page).set('size', size);
+    if (keyword.trim()) params = params.set('keyword', keyword.trim());
+    return this.httpClient.get<ApiResponse<PageResponse<SupplierDTOResponse>>>(
+      ApiUrl.supplier.search,
+      { headers: this.createHeaders(), params: params }
+    );
+  }
 }

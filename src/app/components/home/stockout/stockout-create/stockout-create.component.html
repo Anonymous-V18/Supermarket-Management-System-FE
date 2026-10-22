@@ -25,9 +25,9 @@
             </select>
           </div>
           <div class="col-md-6 col-xl-3">
-            <label class="form-label required" for="customerId">Khách hàng</label>
+            <label class="form-label" for="customerId">Khách hàng</label>
             <select id="customerId" class="form-select" formControlName="customerId">
-              <option value="" disabled>-- Chọn khách hàng --</option>
+              <option value="">Không gắn khách hàng</option>
               @for (customer of customerDTOs; track customer) {
               <option value="{{ customer.id }}">
                 {{ customer.name }}
@@ -36,7 +36,7 @@
             </select>
           </div>
           <div class="col-md-6 col-xl-3">
-            <label class="form-label required" for="stockOutDate">Ngày xuất</label>
+            <label class="form-label" for="stockOutDate">Ngày xuất</label>
             <input
               id="stockOutDate"
               type="datetime-local"
@@ -45,13 +45,13 @@
             />
           </div>
           <div class="col-md-6 col-xl-3">
-            <label class="form-label required" for="statusInvoiceId">Trạng thái</label>
+            <label class="form-label" for="statusInvoiceId">Trạng thái</label>
             <select
               id="statusInvoiceId"
               class="form-select"
               formControlName="statusInvoiceId"
             >
-              <option value="" disabled>-- Chọn trạng thái --</option>
+              <option value="">Chờ xử lý (mặc định)</option>
               @for (statusInvoice of statusInvoiceDTOs; track statusInvoice) {
               <option value="{{ statusInvoice.id }}">
                 {{ statusInvoice.name }}

@@ -5,6 +5,10 @@ import { UnitDTOResponse } from '../units/unit.dto';
 
 export class ProductDTOResponse {
   id: string;
+  code?: string;
+  barcode?: string;
+  salePrice?: number;
+  minStock?: number;
   name: string;
   description: string;
   details: string;
@@ -12,9 +16,10 @@ export class ProductDTOResponse {
   warranty: number;
   image: string;
   productCategory: ProductCategoryDTOResponse;
-  supplier: SupplierDTOResponse;
+  // Optional on a product
+  supplier?: SupplierDTOResponse;
   unit: UnitDTOResponse;
-  brand: BrandDTOResponse;
+  brand?: BrandDTOResponse;
 
   constructor(
     id: string,
@@ -25,7 +30,7 @@ export class ProductDTOResponse {
     warranty: number,
     image: string,
     productCategory: ProductCategoryDTOResponse,
-    supplier: SupplierDTOResponse,
+    supplier: SupplierDTOResponse | undefined,
     unit: UnitDTOResponse,
     brand: BrandDTOResponse
   ) {

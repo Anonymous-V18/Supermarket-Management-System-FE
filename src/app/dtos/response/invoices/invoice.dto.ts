@@ -6,6 +6,10 @@ import { WarehouseDTResponse } from '../warehouses/warehouse.dto';
 
 export class InvoiceDTOResponse {
   id: string;
+  code?: string;
+  paymentMethod?: 'CASH' | 'CARD' | 'TRANSFER';
+  amountPaid?: number;
+  changeAmount?: number;
   createdDate: Date;
   modifiedDate: Date;
   discount: number;
@@ -14,7 +18,8 @@ export class InvoiceDTOResponse {
   invoiceCreateDate: Date;
   statusInvoice: StatusInvoiceDTOResponse;
   invoiceDetails: InvoiceDetailDTOResponse[];
-  customer: CustomerDTOResponse;
+  // Missing for walk-in sales / stock-outs without a customer
+  customer?: CustomerDTOResponse;
   employee: EmployeeDTOResponse;
   warehouse: WarehouseDTResponse;
 
@@ -28,7 +33,7 @@ export class InvoiceDTOResponse {
     invoiceCreateDate: Date,
     statusInvoice: StatusInvoiceDTOResponse,
     invoiceDetails: InvoiceDetailDTOResponse[],
-    customer: CustomerDTOResponse,
+    customer: CustomerDTOResponse | undefined,
     employee: EmployeeDTOResponse,
     warehouse: WarehouseDTResponse
   ) {

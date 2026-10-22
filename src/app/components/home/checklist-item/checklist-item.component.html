@@ -1,0 +1,77 @@
+<div class="card mb-4">
+  <div class="card-header card-header-actions">
+    <h1 class="card-title">Checklist ca làm việc</h1>
+  </div>
+  <div class="card-body">
+    <form class="row g-2 align-items-end mb-4" [formGroup]="newItemForm" (ngSubmit)="add()">
+      <div class="col-md-3">
+        <label class="form-label required" for="newCode">Mã</label>
+        <input id="newCode" type="text" class="form-control" placeholder="vd: count-safe" formControlName="code" />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label required" for="newLabel">Công việc</label>
+        <input id="newLabel" type="text" class="form-control" placeholder="vd: Kiểm két an toàn" formControlName="label" />
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label" for="newGroup">Nhóm</label>
+        <select id="newGroup" class="form-select" formControlName="groupCode">
+          <option value="START">Đầu ca</option>
+          <option value="END">Cuối ca</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-1">
+        <label class="form-label" for="newSort">Thứ tự</label>
+        <input id="newSort" type="number" min="0" class="form-control" formControlName="sortOrder" />
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100" [disabled]="!newItemForm.valid">
+          <i class="bi bi-plus-lg me-1"></i>Thêm
+        </button>
+      </div>
+      <div class="col-12 form-text mt-1">Mã gồm chữ thường, số, dấu gạch ngang và không đổi được sau khi tạo.</div>
+    </form>
+
+    <div class="border border-dark rounded-3 table-responsive">
+      <table class="table align-middle custom-table m-0">
+        <thead>
+          <tr>
+            <th>Mã</th>
+            <th>Công việc</th>
+            <th>Nhóm</th>
+            <th>Thứ tự</th>
+            <th>Hiển thị</th>
+            <th><span class="visually-hidden">Lưu</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows().controls; track row) {
+          <tr [formGroup]="row" [class.text-secondary]="!row.value.isActive">
+            <td><code>{{ row.value.code }}</code></td>
+            <td><input type="text" class="form-control" aria-label="Công việc" formControlName="label" /></td>
+            <td>
+              <select class="form-select" aria-label="Nhóm" formControlName="groupCode">
+                <option value="START">Đầu ca</option>
+                <option value="END">Cuối ca</option>
+              </select>
+            </td>
+            <td class="checklist-sort"><input type="number" min="0" class="form-control" aria-label="Thứ tự" formControlName="sortOrder" /></td>
+            <td>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" aria-label="Hiển thị trên dashboard" formControlName="isActive" />
+              </div>
+            </td>
+            <td>
+              <button type="button" class="btn btn-sm btn-success" [disabled]="row.pristine || !row.valid" (click)="save(row)">Lưu</button>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="6" class="text-center"><b>Chưa có mục checklist nào</b></td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="form-text">Tắt "Hiển thị" để ẩn mục khỏi dashboard; các ca đã làm vẫn giữ lịch sử của mục đó.</p>
+  </div>
+</div>

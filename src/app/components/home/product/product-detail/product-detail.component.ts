@@ -26,16 +26,19 @@ import { RoleService } from '../../../../services/role.service';
 export class ProductDetailComponent implements OnInit {
   private formBuilder = inject(FormBuilder);
   productUpdateForm = this.formBuilder.group({
-    name: ['', Validators.required],
-    description: ['', Validators.required],
-    details: ['', Validators.required],
-    warranty: [0, [Validators.required, Validators.min(0)]],
-    vat: [0, [Validators.required, Validators.min(0)]],
+    name: ['', [Validators.required, Validators.maxLength(255)]],
+    barcode: ['', [Validators.maxLength(50), Validators.pattern(/^[0-9A-Za-z-]*$/)]],
+    description: ['', Validators.maxLength(255)],
+    details: ['', Validators.maxLength(255)],
+    warranty: [0, [Validators.min(0)]],
+    vat: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
     image: ['none-image'],
+    salePrice: [0, [Validators.required, Validators.min(0)]],
+    minStock: [0, [Validators.required, Validators.min(0)]],
     productCategoryId: ['', Validators.required],
-    supplierId: ['', Validators.required],
+    supplierId: [''],
     unitId: ['', Validators.required],
-    brandId: ['', Validators.required],
+    brandId: [''],
   });
   private toastrService = inject(ToastrService);
   private toastrConfig = {
@@ -174,17 +177,21 @@ export class ProductDetailComponent implements OnInit {
   }
 
   mappingDataToDTORequest(): ProductDTORequest {
+    const value = this.productUpdateForm.value;
     return new ProductDTORequest(
-      this.productUpdateForm.value.name,
-      this.productUpdateForm.value.description,
-      this.productUpdateForm.value.details,
-      this.productUpdateForm.value.warranty,
-      this.productUpdateForm.value.vat,
-      this.productUpdateForm.value.image,
-      this.productUpdateForm.value.productCategoryId,
-      this.productUpdateForm.value.supplierId,
-      this.productUpdateForm.value.unitId,
-      this.productUpdateForm.value.brandId
+      value.name ?? '',
+      value.barcode || null,
+      value.description || null,
+      value.details || null,
+      value.warranty ?? null,
+      Number(value.vat) || 0,
+      value.image || null,
+      Number(value.salePrice) || 0,
+      Number(value.minStock) || 0,
+      value.productCategoryId ?? '',
+      value.supplierId || null,
+      value.unitId ?? '',
+      value.brandId || null
     );
   }
 
@@ -199,7 +206,10 @@ export class ProductDetailComponent implements OnInit {
       productCategoryId: this.productDTO.productCategory.id,
       supplierId: this.productDTO?.supplier?.id ?? '',
       unitId: this.productDTO.unit.id,
-      brandId: this.productDTO.brand.id,
+      brandId: this.productDTO.brand?.id ?? '',
+      barcode: this.productDTO.barcode ?? '',
+      salePrice: this.productDTO.salePrice ?? 0,
+      minStock: this.productDTO.minStock ?? 0,
     });
   }
 

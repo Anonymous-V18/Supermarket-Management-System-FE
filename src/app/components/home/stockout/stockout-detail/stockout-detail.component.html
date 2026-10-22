@@ -1,7 +1,7 @@
 <form [formGroup]="stockOutUpdateForm" (ngSubmit)="onSubmit()">
   <div class="card mb-3">
     <div class="card-header card-header-actions">
-      <h1 class="card-title">Thông tin phiếu xuất kho</h1>
+      <h1 class="card-title">Phiếu xuất kho {{ stockOutDTO.code }}</h1>
       <span class="form-required-note">
         Trường có dấu <span class="text-danger">*</span> là bắt buộc
       </span>
@@ -24,10 +24,11 @@
             />
           </div>
           <div class="col-md-6 col-xl-3">
-            <label class="form-label required" for="customerId">Khách hàng</label>
+            <label class="form-label" for="customerId">Khách hàng</label>
             <select id="customerId" class="form-select" formControlName="customerId">
+              <option value="">Không gắn khách hàng</option>
               @for (customer of customerDTOs; track customer) {
-              @if(stockOutDTO.customer.id === customer.id) {
+              @if(stockOutDTO.customer?.id === customer.id) {
               <option value="{{ customer.id }}" selected>
                 {{ customer.name }}
               </option>

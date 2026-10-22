@@ -5,6 +5,9 @@ export class StockinDetailDTOReponse {
   quantity: number;
   inputPrice: number;
   salePrice: number;
+  // Optional lot tracking; expiryDate is yyyy-MM-dd
+  lotNumber?: string | null;
+  expiryDate?: string | null;
   product: ProductDTOResponse;
 
   constructor(

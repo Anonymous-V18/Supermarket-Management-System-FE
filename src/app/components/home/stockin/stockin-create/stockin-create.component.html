@@ -36,7 +36,7 @@
             </select>
           </div>
           <div class="col-md-6 col-xl-3">
-            <label class="form-label required" for="stockInDate">Ngày nhập</label>
+            <label class="form-label" for="stockInDate">Ngày nhập (mặc định: bây giờ)</label>
             <input
               id="stockInDate"
               type="datetime-local"
@@ -45,13 +45,13 @@
             />
           </div>
           <div class="col-md-6 col-xl-3">
-            <label class="form-label required" for="statusInvoiceId">Trạng thái</label>
+            <label class="form-label" for="statusInvoiceId">Trạng thái</label>
             <select
               id="statusInvoiceId"
               class="form-select"
               formControlName="statusInvoiceId"
             >
-              <option value="" disabled>-- Chọn trạng thái --</option>
+              <option value="">Chờ xử lý (mặc định)</option>
               @for (statusInvoice of statusInvoiceDTOs; track statusInvoice) {
               <option value="{{ statusInvoice.id }}">
                 {{ statusInvoice.name }}
@@ -85,6 +85,7 @@
                 <th class="col-amount">Số lượng</th>
                 <th class="col-amount">Giá nhập (₫)</th>
                 <th class="col-amount">Giá bán (₫)</th>
+                <th class="col-lot">Số lô / HSD</th>
                 <th class="col-amount">Thành tiền</th>
                 <th class="col-action"><span class="visually-hidden">Xóa</span></th>
               </tr>
@@ -135,6 +136,23 @@
                     formControlName="salePrice"
                   />
                 </td>
+                <td class="col-lot">
+                  <input
+                    type="text"
+                    maxlength="50"
+                    class="form-control form-control-sm mb-1"
+                    placeholder="Số lô"
+                    aria-label="Số lô"
+                    formControlName="lotNumber"
+                  />
+                  <input
+                    type="date"
+                    class="form-control form-control-sm"
+                    aria-label="Hạn sử dụng"
+                    title="Hạn sử dụng (bỏ trống nếu không có)"
+                    formControlName="expiryDate"
+                  />
+                </td>
                 <td class="col-amount fw-semibold">
                   {{
                     (stockInDetail.value.quantity || 0) *
@@ -155,7 +173,7 @@
               </tr>
               } @empty {
               <tr>
-                <td colspan="7" class="line-empty">
+                <td colspan="8" class="line-empty">
                   Chưa có sản phẩm nào trong phiếu nhập.
                 </td>
               </tr>

@@ -1,0 +1,206 @@
+<div class="card mb-4">
+  <div class="card-header card-header-actions">
+    <h1 class="card-title">Báo cáo</h1>
+    <button type="button" class="btn btn-outline-success" (click)="exportCsv()">
+      <i class="bi bi-filetype-csv me-1"></i>Xuất CSV
+    </button>
+  </div>
+  <div class="card-body">
+    <ul class="nav nav-tabs mb-3" role="tablist">
+      @for (item of visibleTabs; track item.key) {
+      <li class="nav-item" role="presentation">
+        <button type="button" role="tab" class="nav-link" [class.active]="tab === item.key" [attr.aria-selected]="tab === item.key" (click)="select(item.key)">
+          <i class="bi {{ item.icon }} me-1"></i>{{ item.label }}
+        </button>
+      </li>
+      }
+    </ul>
+
+    <!-- Filters -->
+    <div class="d-flex flex-wrap align-items-end gap-2 mb-3">
+      @if (usesDateRange) {
+      <div>
+        <label class="form-label small mb-1" for="reportFrom">Từ ngày</label>
+        <input id="reportFrom" type="date" class="form-control" [value]="filter.from" (change)="onFilter('from', $event)" />
+      </div>
+      <div>
+        <label class="form-label small mb-1" for="reportTo">Đến ngày</label>
+        <input id="reportTo" type="date" class="form-control" [value]="filter.to" (change)="onFilter('to', $event)" />
+      </div>
+      }
+      <div>
+        <label class="form-label small mb-1" for="reportWarehouse">Kho</label>
+        <select id="reportWarehouse" class="form-select" (change)="onFilter('warehouseId', $event)">
+          <option value="">Tất cả kho</option>
+          @for (warehouse of warehouses; track warehouse.id) {
+          <option [value]="warehouse.id">{{ warehouse.name }}</option>
+          }
+        </select>
+      </div>
+      @if (tab === 'inventory') {
+      <div class="form-check mb-2 ms-1">
+        <input id="lowStockOnly" type="checkbox" class="form-check-input" [checked]="lowStockOnly" (change)="onLowStockOnly($event)" />
+        <label class="form-check-label" for="lowStockOnly">Chỉ hàng dưới tồn tối thiểu</label>
+      </div>
+      }
+      @if (tab === 'expiring') {
+      <div>
+        <label class="form-label small mb-1" for="withinDays">Hết hạn trong</label>
+        <select id="withinDays" class="form-select" (change)="onWithinDays($event)">
+          <option value="7">7 ngày</option>
+          <option value="30" selected>30 ngày</option>
+          <option value="90">90 ngày</option>
+        </select>
+      </div>
+      }
+      <button type="button" class="btn btn-primary" (click)="load()" [disabled]="loading">
+        <i class="bi bi-arrow-repeat me-1"></i>Xem
+      </button>
+    </div>
+
+    @switch (tab) {
+    @case ('revenue') {
+    <div class="row g-3 mb-3">
+      <div class="col-6 col-lg"><div class="report-kpi"><span>Số hóa đơn</span><b>{{ totals.invoiceCount | number }}</b></div></div>
+      <div class="col-6 col-lg"><div class="report-kpi"><span>Doanh thu</span><b>{{ totals.revenue | number: '1.0-0' }} ₫</b></div></div>
+      <div class="col-6 col-lg"><div class="report-kpi"><span>Hoàn trả</span><b class="text-danger">{{ totals.refunds | number: '1.0-0' }} ₫</b></div></div>
+      <div class="col-6 col-lg"><div class="report-kpi"><span>Doanh thu thuần</span><b>{{ totals.netRevenue | number: '1.0-0' }} ₫</b></div></div>
+      <div class="col-12 col-lg"><div class="report-kpi"><span>Lãi gộp</span><b class="text-success">{{ totals.grossProfit | number: '1.0-0' }} ₫</b></div></div>
+    </div>
+    <div class="border rounded-3 table-responsive">
+      <table class="table table-sm align-middle m-0">
+        <thead>
+          <tr>
+            <th>Ngày</th>
+            <th class="text-end">Hóa đơn</th>
+            <th class="text-end">Doanh thu</th>
+            <th class="text-end">Hoàn trả</th>
+            <th class="text-end">Thuần</th>
+            <th class="report-bar-col"><span class="visually-hidden">Biểu đồ</span></th>
+            <th class="text-end">Giá vốn</th>
+            <th class="text-end">Lãi gộp</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (day of revenue; track day.date) {
+          <tr [class.text-secondary]="day.invoiceCount === 0 && day.refunds === 0">
+            <td class="text-nowrap">{{ day.date }}</td>
+            <td class="text-end">{{ day.invoiceCount }}</td>
+            <td class="text-end">{{ day.revenue | number: '1.0-0' }}</td>
+            <td class="text-end">{{ day.refunds | number: '1.0-0' }}</td>
+            <td class="text-end fw-semibold">{{ day.netRevenue | number: '1.0-0' }}</td>
+            <td class="report-bar-col"><div class="report-bar" [style.width.%]="barWidth(day.netRevenue)"></div></td>
+            <td class="text-end">{{ day.cost | number: '1.0-0' }}</td>
+            <td class="text-end">{{ day.grossProfit | number: '1.0-0' }}</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+    @case ('products') {
+    <div class="border rounded-3 table-responsive">
+      <table class="table table-striped align-middle m-0">
+        <thead>
+          <tr><th>#</th><th>Mã</th><th>Sản phẩm</th><th class="text-end">Số lượng</th><th class="text-end">Doanh thu</th><th class="text-end">Lãi gộp</th></tr>
+        </thead>
+        <tbody>
+          @for (product of products; track product.productId; let idx = $index) {
+          <tr>
+            <td>{{ idx + 1 }}</td>
+            <td>{{ product.productCode }}</td>
+            <td>{{ product.productName }}</td>
+            <td class="text-end">{{ product.quantity | number }}</td>
+            <td class="text-end">{{ product.revenue | number: '1.0-0' }} ₫</td>
+            <td class="text-end">{{ product.grossProfit | number: '1.0-0' }} ₫</td>
+          </tr>
+          } @empty {
+          <tr><td colspan="6" class="text-center text-secondary">Không có bán hàng trong khoảng thời gian này.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="form-text">Doanh thu theo dòng hàng (đã trừ giảm giá dòng, chưa phân bổ giảm giá hóa đơn và chưa trừ hàng trả).</p>
+    }
+    @case ('employees') {
+    <div class="border rounded-3 table-responsive">
+      <table class="table table-striped align-middle m-0">
+        <thead>
+          <tr><th>Mã NV</th><th>Nhân viên</th><th class="text-end">Số hóa đơn</th><th class="text-end">Doanh thu</th></tr>
+        </thead>
+        <tbody>
+          @for (employee of employees; track employee.employeeId) {
+          <tr>
+            <td>{{ employee.employeeCode }}</td>
+            <td>{{ employee.employeeName }}</td>
+            <td class="text-end">{{ employee.invoiceCount | number }}</td>
+            <td class="text-end">{{ employee.revenue | number: '1.0-0' }} ₫</td>
+          </tr>
+          } @empty {
+          <tr><td colspan="4" class="text-center text-secondary">Không có bán hàng trong khoảng thời gian này.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+    @case ('inventory') {
+    <div class="row g-3 mb-3">
+      <div class="col-6 col-lg-3"><div class="report-kpi"><span>Số dòng tồn</span><b>{{ inventory.length | number }}</b></div></div>
+      <div class="col-6 col-lg-3"><div class="report-kpi"><span>Dưới tồn tối thiểu</span><b class="text-danger">{{ lowStockCount | number }}</b></div></div>
+      <div class="col-12 col-lg-6"><div class="report-kpi"><span>Giá trị tồn (giá vốn)</span><b>{{ stockValue | number: '1.0-0' }} ₫</b></div></div>
+    </div>
+    <div class="border rounded-3 table-responsive">
+      <table class="table table-striped align-middle m-0">
+        <thead>
+          <tr><th>Kho</th><th>Mã</th><th>Sản phẩm</th><th>ĐVT</th><th class="text-end">Tồn</th><th class="text-end">Tối thiểu</th><th class="text-end">Giá vốn</th><th class="text-end">Giá trị tồn</th></tr>
+        </thead>
+        <tbody>
+          @for (row of inventory; track row.warehouseId + row.productId) {
+          <tr [class.table-warning]="row.lowStock">
+            <td>{{ row.warehouseName }}</td>
+            <td>{{ row.productCode }}</td>
+            <td>{{ row.productName }}</td>
+            <td>{{ row.unitName }}</td>
+            <td class="text-end fw-semibold" [class.text-danger]="row.lowStock">{{ row.quantity | number }}</td>
+            <td class="text-end">{{ row.minStock | number }}</td>
+            <td class="text-end">{{ row.costPrice | number: '1.0-0' }}</td>
+            <td class="text-end">{{ row.stockValue | number: '1.0-0' }}</td>
+          </tr>
+          } @empty {
+          <tr><td colspan="8" class="text-center text-secondary">Không có dữ liệu tồn kho.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+    @case ('expiring') {
+    <div class="border rounded-3 table-responsive">
+      <table class="table table-striped align-middle m-0">
+        <thead>
+          <tr><th>Kho</th><th>Sản phẩm</th><th>Số lô</th><th>Hạn sử dụng</th><th class="text-end">Còn lại</th><th class="text-end">Số lượng</th><th>Phiếu nhập</th></tr>
+        </thead>
+        <tbody>
+          @for (lot of expiring; track lot.stockInCode + lot.productId) {
+          <tr [class.table-danger]="lot.expired" [class.table-warning]="!lot.expired && lot.daysLeft <= 7">
+            <td>{{ lot.warehouseName }}</td>
+            <td>{{ lot.productName }} <span class="text-secondary small">{{ lot.productCode }}</span></td>
+            <td>{{ lot.lotNumber ?? '—' }}</td>
+            <td class="text-nowrap">{{ lot.expiryDate }}</td>
+            <td class="text-end">{{ lot.expired ? 'Đã hết hạn' : lot.daysLeft + ' ngày' }}</td>
+            <td class="text-end fw-semibold">{{ lot.quantity | number }}</td>
+            <td>{{ lot.stockInCode }}</td>
+          </tr>
+          } @empty {
+          <tr><td colspan="7" class="text-center text-secondary">Không có lô hàng nào sắp hết hạn.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="form-text">
+      Số lượng còn của từng lô được ước tính theo nguyên tắc nhập trước - xuất trước (hàng còn lại thuộc các lần nhập gần nhất).
+      Hàng nhận qua chuyển kho chưa mang theo số lô.
+    </p>
+    }
+    }
+  </div>
+</div>

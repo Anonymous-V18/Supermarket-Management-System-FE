@@ -1,0 +1,139 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div class="card mb-3">
+    <div class="card-header card-header-actions">
+      <h1 class="card-title">
+        @if (stockTake) {
+        Phiếu kiểm kê {{ stockTake.code }}
+        <span class="ms-2 fs-6" [class]="statusBadgeClass(stockTake.statusInvoice.code)">{{
+          stockTake.statusInvoice.code === 'PENDING' ? 'Đang kiểm' : stockTake.statusInvoice.code === 'COMPLETED' ? 'Đã cân bằng kho' : stockTake.statusInvoice.name
+        }}</span>
+        } @else {
+        Tạo phiếu kiểm kê
+        }
+      </h1>
+      <span class="form-required-note">Trường có dấu <span class="text-danger">*</span> là bắt buộc</span>
+    </div>
+    <div class="card-body">
+      <section class="form-section">
+        <h2 class="form-section-title"><i class="bi bi-clipboard-check"></i>Thông tin kiểm kê</h2>
+        <div class="row g-3">
+          <div class="col-md-6 col-xl-3">
+            <label class="form-label required" for="warehouseId">Kho kiểm</label>
+            <select id="warehouseId" class="form-select" formControlName="warehouseId">
+              <option value="" disabled>-- Chọn kho --</option>
+              @for (warehouse of warehouses; track warehouse.id) {
+              <option [value]="warehouse.id">{{ warehouse.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <label class="form-label" for="statusInvoiceId">Trạng thái</label>
+            <select id="statusInvoiceId" class="form-select" formControlName="statusInvoiceId">
+              <option value="">Đang kiểm (lưu nháp)</option>
+              @for (status of statusOptions; track status.id) {
+              <option [value]="status.id">{{ status.code === 'COMPLETED' ? 'Cân bằng kho theo số đếm' : status.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-12 col-xl-6">
+            <label class="form-label" for="note">Ghi chú</label>
+            <input id="note" type="text" class="form-control" placeholder="VD: Kiểm kê cuối tháng 10" formControlName="note" />
+          </div>
+          @if (stockTake) {
+          <div class="col-12 small text-secondary">
+            Lập bởi {{ stockTake.employee.name }} · {{ stockTake.stockTakeDate | date: "dd/MM/yyyy HH:mm" }}
+          </div>
+          }
+        </div>
+      </section>
+
+      <section class="form-section">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+          <h2 class="form-section-title mb-0"><i class="bi bi-list-ol"></i>Số lượng đếm được</h2>
+          @if (editable) {
+          <div class="d-flex flex-wrap gap-2">
+            @if (!stockTake) {
+            <button type="button" class="btn btn-outline-primary" (click)="loadWarehouseStock()" [disabled]="!form.getRawValue().warehouseId">
+              <i class="bi bi-download me-1"></i>Nạp toàn bộ tồn kho
+            </button>
+            }
+            <div class="input-group w-auto">
+              <select class="form-select" aria-label="Sản phẩm cần thêm" (change)="onProductToAdd($event)">
+                <option value="">-- Thêm sản phẩm --</option>
+                @for (product of products; track product.id) {
+                <option [value]="product.id">{{ product.name }}</option>
+                }
+              </select>
+              <button type="button" class="btn btn-outline-primary" (click)="addProduct()" [disabled]="!form.getRawValue().warehouseId || !productToAdd">
+                <i class="bi bi-plus-lg"></i>
+              </button>
+            </div>
+          </div>
+          }
+        </div>
+        @if (editable) {
+        <p class="form-text mt-0">Tồn hệ thống được đọc lại tại thời điểm cân bằng kho, nên hàng bán trong lúc kiểm vẫn được tính đúng.</p>
+        }
+        <div class="line-items table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th class="col-index">#</th>
+                <th>Sản phẩm</th>
+                <th class="col-amount">Tồn hệ thống</th>
+                <th class="col-amount">Đếm được</th>
+                <th class="col-amount">Chênh lệch</th>
+                @if (editable) {
+                <th class="col-action"><span class="visually-hidden">Xóa</span></th>
+                }
+              </tr>
+            </thead>
+            <tbody formArrayName="lines">
+              @for (line of lines().controls; track line; let idx = $index) {
+              <tr [formGroupName]="idx">
+                <td class="col-index">{{ idx + 1 }}</td>
+                <td>{{ line.value.productName }} <span class="text-secondary small">{{ line.value.productCode }}</span></td>
+                <td class="col-amount">{{ line.value.systemQuantity | number }}</td>
+                <td><input type="number" min="0" class="form-control" aria-label="Số lượng đếm được" formControlName="countedQuantity" /></td>
+                <td class="col-amount fw-semibold" [class.text-danger]="difference(line) < 0" [class.text-success]="difference(line) > 0">
+                  {{ difference(line) > 0 ? '+' : '' }}{{ difference(line) | number }}
+                </td>
+                @if (editable) {
+                <td class="col-action">
+                  <button type="button" class="btn btn-sm btn-outline-danger" aria-label="Xóa dòng" (click)="removeLine(idx)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+                }
+              </tr>
+              } @empty {
+              <tr>
+                <td colspan="6" class="line-empty">Chọn kho rồi nạp tồn kho hoặc thêm từng sản phẩm.</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <dl class="voucher-summary mb-0">
+          <div>
+            <dt>Số mặt hàng</dt>
+            <dd>{{ lines().length }}</dd>
+          </div>
+          <div class="summary-total">
+            <dt>Tổng chênh lệch</dt>
+            <dd>{{ totalDifference() > 0 ? '+' : '' }}{{ totalDifference() | number }}</dd>
+          </div>
+        </dl>
+      </section>
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <div class="d-flex gap-2 justify-content-end form-group">
+      <a [routerLink]="['/home/stock-take']" class="btn btn-outline-secondary">Quay lại</a>
+      @if (editable) {
+      <button type="submit" class="btn btn-success" [disabled]="!form.valid">Lưu phiếu kiểm kê</button>
+      }
+    </div>
+  </div>
+</form>

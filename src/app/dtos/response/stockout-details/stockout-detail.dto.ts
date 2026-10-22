@@ -2,6 +2,7 @@ import { ProductDTOResponse } from '../products/product.dto';
 
 export class StockoutDetailDTOReponse {
   id: string;
+  totalPrice?: number;
   quantity: number;
   inputPrice: number;
   salePrice: number;

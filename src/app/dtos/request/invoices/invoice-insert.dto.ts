@@ -1,29 +1,30 @@
-import { InvoiceDetailInsertDTORequest } from "../invoice-details/invoice-detail-insert.dto";
+import { InvoiceDetailInsertDTORequest } from '../invoice-details/invoice-detail-insert.dto';
 
+// Totals, prices and dates are computed by the server; an empty customer is a walk-in sale
 export class InvoiceInsertDTORequest {
-  totalProduct: number;
-  totalPrice: number;
-  statusInvoiceId: string;
-  invoiceCreateDate: Date;
-  invoiceDetailInsertRequests: InvoiceDetailInsertDTORequest[];
-  customerId: string;
   warehouseId: string;
+  invoiceDetailInsertRequests: InvoiceDetailInsertDTORequest[];
+  statusInvoiceId?: string | null;
+  customerId?: string | null;
+  discount: number;
+  paymentMethod: 'CASH' | 'CARD' | 'TRANSFER';
+  amountPaid?: number | null;
 
   constructor(
-    totalProduct: any,
-    totalPrice: any,
-    statusInvoiceId: any,
-    invoiceCreateDate: any,
-    invoiceDetailInsertRequests: any,
-    customerId: any,
-    warehouseId: any
+    warehouseId: string,
+    invoiceDetailInsertRequests: InvoiceDetailInsertDTORequest[],
+    statusInvoiceId?: string | null,
+    customerId?: string | null,
+    discount: number = 0,
+    paymentMethod: 'CASH' | 'CARD' | 'TRANSFER' = 'CASH',
+    amountPaid?: number | null
   ) {
-    this.totalProduct = totalProduct;
-    this.totalPrice = totalPrice;
-    this.statusInvoiceId = statusInvoiceId;
-    this.invoiceCreateDate = invoiceCreateDate;
-    this.invoiceDetailInsertRequests = invoiceDetailInsertRequests;
-    this.customerId = customerId;
     this.warehouseId = warehouseId;
+    this.invoiceDetailInsertRequests = invoiceDetailInsertRequests;
+    this.statusInvoiceId = statusInvoiceId;
+    this.customerId = customerId;
+    this.discount = discount;
+    this.paymentMethod = paymentMethod;
+    this.amountPaid = amountPaid;
   }
 }

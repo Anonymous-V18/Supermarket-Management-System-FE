@@ -1,0 +1,60 @@
+<div class="card mb-4">
+  <div class="card-header card-header-actions">
+    <h1 class="card-title">Nhật ký hệ thống</h1>
+  </div>
+  <div class="card-body">
+    <div class="d-flex flex-wrap align-items-end gap-2 mb-3">
+      <div class="input-group flex-grow-1 list-search">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="search" class="form-control" placeholder="Tài khoản, chức năng, mã chứng từ..." aria-label="Tìm kiếm" (input)="onKeyword($event)" />
+      </div>
+      <select class="form-select w-auto" aria-label="Lọc theo thao tác" (change)="onFilter('action', $event)">
+        <option value="">Tất cả thao tác</option>
+        @for (entry of actionLabels | keyvalue; track entry.key) {
+        <option [value]="entry.key">{{ entry.value }}</option>
+        }
+      </select>
+      <input type="date" class="form-control w-auto" aria-label="Từ ngày" (change)="onFilter('from', $event)" />
+      <input type="date" class="form-control w-auto" aria-label="Đến ngày" (change)="onFilter('to', $event)" />
+    </div>
+    <div class="border border-dark rounded-3 table-responsive">
+      <table class="table table-striped align-middle custom-table m-0">
+        <thead>
+          <tr>
+            <th>Thời gian</th>
+            <th>Tài khoản</th>
+            <th>Thao tác</th>
+            <th>Chức năng</th>
+            <th>Chứng từ</th>
+            <th>Kết quả</th>
+            <th>IP</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (log of logs; track log.id) {
+          <tr>
+            <td class="text-nowrap">{{ log.createdDate | date: "dd/MM/yyyy HH:mm:ss" }}</td>
+            <td>{{ log.username ?? '—' }}</td>
+            <td><span [class]="actionClass(log.action)">{{ actionLabels[log.action] ?? log.action }}</span></td>
+            <td><span title="{{ log.httpMethod }} {{ log.path }}">{{ log.resource }}</span></td>
+            <td class="text-break">{{ log.reference ?? '' }}</td>
+            <td>
+              @if (log.success) {
+              <span class="text-success"><i class="bi bi-check-circle me-1"></i>Thành công</span>
+              } @else {
+              <span class="text-danger"><i class="bi bi-x-circle me-1"></i>Lỗi {{ log.errorCode ?? log.statusCode }}</span>
+              }
+            </td>
+            <td class="small text-secondary">{{ log.ipAddress }}</td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="7" class="text-center"><b>Không có bản ghi phù hợp</b></td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-pager [page]="page" [totalPages]="totalPages" [totalItems]="totalItems" (pageChange)="load($event)" />
+  </div>
+</div>

@@ -6,6 +6,7 @@ import { WarehouseDTResponse } from "../warehouses/warehouse.dto";
 
 export class StockinDTOResponse {
   id: string;
+  code?: string;
   totalProduct: number;
   totalPrice: number;
   stockInDate: Date;

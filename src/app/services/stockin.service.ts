@@ -5,6 +5,7 @@ import { StockInInsertDTORequest } from '../dtos/request/stockins/stockin-insert
 import { StockInUpdateDTORequest } from '../dtos/request/stockins/stockin-update.dto';
 import { ApiResponse } from '../dtos/response/api-response/api-response.dto';
 import { StockinDTOResponse } from '../dtos/response/stockins/stockin.dto';
+import { PageResponse } from '../dtos/response/page/page-response.dto';
 import { ApiUrl } from './../environments/api-url';
 
 @Injectable({
@@ -37,8 +38,8 @@ export class StockinService {
 
   insert(
     stockInInsertDTORequest: StockInInsertDTORequest
-  ): Observable<ApiResponse<void>> {
-    return this.httpClient.post<ApiResponse<void>>(
+  ): Observable<ApiResponse<StockinDTOResponse>> {
+    return this.httpClient.post<ApiResponse<StockinDTOResponse>>(
       this.apiUrlInsert,
       stockInInsertDTORequest,
       this.apiConfig
@@ -59,10 +60,34 @@ export class StockinService {
   update(
     stockInId: string,
     stockInUpdateDTORequest: StockInUpdateDTORequest
-  ): Observable<ApiResponse<void>> {
-    return this.httpClient.put<ApiResponse<void>>(
+  ): Observable<ApiResponse<StockinDTOResponse>> {
+    return this.httpClient.put<ApiResponse<StockinDTOResponse>>(
       this.apiUrlUpdate + '/' + stockInId,
       stockInUpdateDTORequest
     );
+  }
+
+  // Paged list for the list screen; keyword matches codes, names, phone numbers...
+  search(
+    keyword: string,
+    page: number,
+    size: number,
+    status?: string,
+  ): Observable<ApiResponse<PageResponse<StockinDTOResponse>>> {
+    let params = new HttpParams().set('page', page).set('size', size);
+    if (keyword.trim()) params = params.set('keyword', keyword.trim());
+    if (status) params = params.set('status', status);
+    return this.httpClient.get<ApiResponse<PageResponse<StockinDTOResponse>>>(
+      ApiUrl.stockin.search,
+      { headers: this.createHeaders(), params: params }
+    );
+  }
+
+  // Soft delete on the server: the rows stay for history and disappear from lists
+  delete(ids: string[]): Observable<ApiResponse<void>> {
+    return this.httpClient.delete<ApiResponse<void>>(ApiUrl.stockin.delete, {
+      headers: this.createHeaders(),
+      body: ids,
+    });
   }
 }

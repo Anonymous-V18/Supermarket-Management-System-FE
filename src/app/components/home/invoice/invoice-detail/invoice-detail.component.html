@@ -1,7 +1,12 @@
 <form [formGroup]="invoiceUpdateForm" (ngSubmit)="onSubmit()">
   <div class="card mb-3">
     <div class="card-header card-header-actions">
-      <h1 class="card-title">Thông tin hóa đơn bán hàng</h1>
+      <h1 class="card-title">Hóa đơn {{ invoiceDTO.code }}</h1>
+      @if (invoiceDTO.statusInvoice.code === 'COMPLETED') {
+      <a class="btn btn-outline-warning ms-auto me-3" [routerLink]="['/home/sales-return/create']" [queryParams]="{ invoiceId: invoiceDTO.id }">
+        <i class="bi bi-arrow-counterclockwise me-1"></i>Trả hàng
+      </a>
+      }
       <span class="form-required-note">
         Trường có dấu <span class="text-danger">*</span> là bắt buộc
       </span>
@@ -24,10 +29,11 @@
             />
           </div>
           <div class="col-md-6 col-xl-3">
-            <label class="form-label required" for="customerId">Khách hàng</label>
+            <label class="form-label" for="customerId">Khách hàng</label>
             <select id="customerId" class="form-select" formControlName="customerId">
+              <option value="">Khách lẻ</option>
               @for (customer of customerDTOs; track customer) {
-              @if(invoiceDTO.customer.id === customer.id) {
+              @if(invoiceDTO.customer?.id === customer.id) {
               <option value="{{ customer.id }}" selected>
                 {{ customer.name }}
               </option>
@@ -39,12 +45,13 @@
             </select>
           </div>
           <div class="col-md-6 col-xl-3">
-            <label class="form-label required" for="invoiceCreateDate">Ngày tạo</label>
+            <label class="form-label" for="invoiceCreateDate">Ngày tạo</label>
             <input
               id="invoiceCreateDate"
-              type="datetime-local"
+              type="text"
               class="form-control"
               formControlName="invoiceCreateDate"
+              readonly
             />
           </div>
           <div class="col-md-6 col-xl-3">
@@ -66,7 +73,20 @@
               } }
             </select>
           </div>
+          <div class="col-md-6 col-xl-3">
+            <label class="form-label" for="paymentMethod">Thanh toán</label>
+            <select id="paymentMethod" class="form-select" formControlName="paymentMethod">
+              <option value="CASH">Tiền mặt</option>
+              <option value="CARD">Thẻ</option>
+              <option value="TRANSFER">Chuyển khoản</option>
+            </select>
+          </div>
         </div>
+        @if (!isEditable()) {
+        <p class="form-text mb-0 mt-2">
+          Hóa đơn không còn ở trạng thái chờ xử lý: chỉ có thể chuyển sang "Đã hủy".
+        </p>
+        }
       </section>
 
       <!-- 2. Line items -->
@@ -79,6 +99,7 @@
             type="button"
             class="btn btn-outline-primary"
             (click)="addInvoiceDetailInsertRequest()"
+            [hidden]="!isEditable()"
           >
             <i class="bi bi-plus-lg me-1"></i>Thêm sản phẩm
           </button>
@@ -90,6 +111,7 @@
                 <th class="col-index">#</th>
                 <th>Sản phẩm</th>
                 <th class="col-amount">Số lượng</th>
+                <th class="col-amount">CK (%)</th>
                 <th class="col-amount">Đơn giá</th>
                 <th class="col-amount">Thành tiền</th>
                 <th class="col-action"><span class="visually-hidden">Xóa</span></th>
@@ -111,17 +133,28 @@
                       formControlName="quantity"
                     />
                   </td>
+                  <td>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      class="form-control"
+                      aria-label="Chiết khấu phần trăm"
+                      formControlName="discountPercent"
+                    />
+                  </td>
                   <td class="col-amount">
                     {{ invoiceDetail.value.salePrice | number: "1.0-0" }} ₫
                   </td>
                   <td class="col-amount fw-semibold">
-                    {{ invoiceDetail.value.subTotalPrice | number: "1.0-0" }} ₫
+                    {{ invoiceDetail.getRawValue().subTotalPrice | number: "1.0-0" }} ₫
                   </td>
                   <td class="col-action">
                     <button
                       type="button"
                       class="btn btn-sm btn-outline-danger"
                       aria-label="Xóa dòng"
+                      [hidden]="!isEditable()"
                       (click)="removeInvoiceDetailUpdateRequest(idx)"
                     >
                       <i class="bi bi-trash"></i>
@@ -147,7 +180,7 @@
                       <option value="" disabled>-- Chọn sản phẩm --</option>
                       @for (product of productDTOs; track product) {
                       <option value="{{ product.id }}">
-                        {{ product.name }}
+                        {{ product.code }} - {{ product.name }}
                       </option>
                       }
                     </select>
@@ -159,6 +192,16 @@
                       class="form-control"
                       aria-label="Số lượng"
                       formControlName="quantity"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      class="form-control"
+                      aria-label="Chiết khấu phần trăm"
+                      formControlName="discountPercent"
                     />
                   </td>
                   <td class="col-amount">
@@ -185,15 +228,35 @@
         </div>
 
         <!-- 3. Totals -->
+        <div class="row g-3 mb-3">
+          <div class="col-md-6 col-xl-3">
+            <label class="form-label" for="discount">Giảm giá hóa đơn (₫)</label>
+            <input id="discount" type="number" min="0" step="1000" class="form-control" formControlName="discount" />
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <label class="form-label" for="amountPaid">Tiền khách đưa (₫)</label>
+            <input id="amountPaid" type="number" min="0" step="1000" class="form-control" formControlName="amountPaid" />
+          </div>
+        </div>
         <dl class="voucher-summary mb-0">
           <div>
             <dt>Tổng số lượng</dt>
             <dd>{{ invoiceUpdateForm.value.totalProduct || 0 | number }}</dd>
           </div>
-          <div class="summary-total">
-            <dt>Tổng tiền</dt>
+          <div>
+            <dt>Tiền hàng</dt>
             <dd>{{ invoiceUpdateForm.value.totalPrice || 0 | number: "1.0-0" }} ₫</dd>
           </div>
+          <div class="summary-total">
+            <dt>Khách phải trả</dt>
+            <dd>{{ total() | number: "1.0-0" }} ₫</dd>
+          </div>
+          @if (invoiceDTO.changeAmount) {
+          <div>
+            <dt>Tiền thối</dt>
+            <dd>{{ invoiceDTO.changeAmount | number: "1.0-0" }} ₫</dd>
+          </div>
+          }
         </dl>
       </section>
     </div>

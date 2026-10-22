@@ -20,6 +20,15 @@ import { SupplierService } from '../../../../services/supplier.service';
 import { StatusInvoiceService } from './../../../../services/status-invoice.service';
 import { WarehouseService } from './../../../../services/warehouse.service';
 
+import { StockInDetailInsertDTORequest } from '../../../../dtos/request/stockin-details/stockin-detail-insert.dto';
+// Empty lot / expiry inputs are sent as null, not as empty strings
+const withLotFields = (lines: any[]) =>
+  lines.map((line) => ({
+    ...line,
+    lotNumber: line.lotNumber?.trim() || null,
+    expiryDate: line.expiryDate || null,
+  }));
+
 @Component({
   selector: 'app-stockin-create',
   imports: [ReactiveFormsModule, RouterLink, DecimalPipe],
@@ -30,10 +39,11 @@ import { WarehouseService } from './../../../../services/warehouse.service';
 export class StockinCreateComponent implements OnInit {
   private formBuilder = inject(FormBuilder);
   stockInCreateForm = this.formBuilder.group({
-    totalProduct: ['', [Validators.required, Validators.min(0)]],
-    totalPrice: ['', [Validators.required, Validators.min(0)]],
-    stockInDate: ['', [Validators.required]],
-    statusInvoiceId: ['', [Validators.required]],
+    // Display only: the server computes totals
+    totalProduct: [''],
+    totalPrice: [''],
+    stockInDate: [''],
+    statusInvoiceId: [''],
     supplierId: ['', [Validators.required]],
     warehouseId: ['', [Validators.required]],
     stockInDetailInsertRequests: this.formBuilder.array(
@@ -74,7 +84,7 @@ export class StockinCreateComponent implements OnInit {
 
   onSubmit() {
     this.stockinService.insert(this.mappingDataToDTORequest()).subscribe({
-      next: (response: ApiResponse<void>) => {
+      next: (response: ApiResponse<unknown>) => {
         this.toastrService.success(
           response.message,
           'Success !',
@@ -105,6 +115,9 @@ export class StockinCreateComponent implements OnInit {
       quantity: [0, [Validators.required, Validators.min(1)]],
       inputPrice: [0, [Validators.required, Validators.min(1)]],
       salePrice: ['', [Validators.required, Validators.min(1)]],
+      // Optional: only for goods that expire
+      lotNumber: ['', [Validators.maxLength(50)]],
+      expiryDate: [''],
     });
     this.stockInDetails().push(detailGroup);
   }
@@ -124,7 +137,10 @@ export class StockinCreateComponent implements OnInit {
   getAllStatusInvoice() {
     this.statusInvoiceService.showAllNoParam().subscribe({
       next: (response: ApiResponse<StatusInvoiceDTOResponse[]>) => {
-        this.statusInvoiceDTOs = response.result;
+        // "Chờ xử lý" is the empty default option; a new document can't start cancelled
+        this.statusInvoiceDTOs = response.result.filter(
+          (status) => status.code === 'COMPLETED'
+        );
       },
       complete: () => {},
       error: (error: any) => {
@@ -209,16 +225,13 @@ export class StockinCreateComponent implements OnInit {
   }
 
   mappingDataToDTORequest(): StockInInsertDTORequest {
+    const value = this.stockInCreateForm.value;
     return new StockInInsertDTORequest(
-      this.stockInCreateForm.value.totalProduct,
-      this.stockInCreateForm.value.totalPrice,
-      new Date(
-        this.stockInCreateForm.value.stockInDate ?? Date.now()
-      ).toISOString(),
-      this.stockInCreateForm.value.statusInvoiceId,
-      this.stockInCreateForm.value.stockInDetailInsertRequests,
-      this.stockInCreateForm.value.supplierId,
-      this.stockInCreateForm.value.warehouseId
+      value.supplierId ?? '',
+      value.warehouseId ?? '',
+      withLotFields(value.stockInDetailInsertRequests ?? []) as StockInDetailInsertDTORequest[],
+      value.statusInvoiceId || null,
+      value.stockInDate ? new Date(value.stockInDate).toISOString() : null
     );
   }
 }

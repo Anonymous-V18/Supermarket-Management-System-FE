@@ -247,6 +247,120 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'sales-return',
+        loadComponent: () =>
+          import('./components/home/sales-return/sales-return.component').then(
+            (m) => m.SalesReturnComponent
+          ),
+        children: [
+          { path: '', redirectTo: 'show', pathMatch: 'full' },
+          {
+            path: 'show',
+            loadComponent: () =>
+              import(
+                './components/home/sales-return/sales-return-show/sales-return-show.component'
+              ).then((m) => m.SalesReturnShowComponent),
+          },
+          {
+            path: 'create',
+            loadComponent: () =>
+              import(
+                './components/home/sales-return/sales-return-form/sales-return-form.component'
+              ).then((m) => m.SalesReturnFormComponent),
+          },
+          {
+            path: 'detail',
+            loadComponent: () =>
+              import(
+                './components/home/sales-return/sales-return-form/sales-return-form.component'
+              ).then((m) => m.SalesReturnFormComponent),
+          },
+        ],
+      },
+      {
+        path: 'stock-transfer',
+        loadComponent: () =>
+          import('./components/home/stock-transfer/stock-transfer.component').then(
+            (m) => m.StockTransferComponent
+          ),
+        children: [
+          { path: '', redirectTo: 'show', pathMatch: 'full' },
+          {
+            path: 'show',
+            loadComponent: () =>
+              import(
+                './components/home/stock-transfer/stock-transfer-show/stock-transfer-show.component'
+              ).then((m) => m.StockTransferShowComponent),
+          },
+          {
+            path: 'create',
+            loadComponent: () =>
+              import(
+                './components/home/stock-transfer/stock-transfer-form/stock-transfer-form.component'
+              ).then((m) => m.StockTransferFormComponent),
+          },
+          {
+            path: 'detail',
+            loadComponent: () =>
+              import(
+                './components/home/stock-transfer/stock-transfer-form/stock-transfer-form.component'
+              ).then((m) => m.StockTransferFormComponent),
+          },
+        ],
+      },
+      {
+        path: 'stock-take',
+        loadComponent: () =>
+          import('./components/home/stock-take/stock-take.component').then(
+            (m) => m.StockTakeComponent
+          ),
+        children: [
+          { path: '', redirectTo: 'show', pathMatch: 'full' },
+          {
+            path: 'show',
+            loadComponent: () =>
+              import(
+                './components/home/stock-take/stock-take-show/stock-take-show.component'
+              ).then((m) => m.StockTakeShowComponent),
+          },
+          {
+            path: 'create',
+            loadComponent: () =>
+              import(
+                './components/home/stock-take/stock-take-form/stock-take-form.component'
+              ).then((m) => m.StockTakeFormComponent),
+          },
+          {
+            path: 'detail',
+            loadComponent: () =>
+              import(
+                './components/home/stock-take/stock-take-form/stock-take-form.component'
+              ).then((m) => m.StockTakeFormComponent),
+          },
+        ],
+      },
+      {
+        path: 'report',
+        loadComponent: () =>
+          import('./components/home/report/report.component').then(
+            (m) => m.ReportComponent
+          ),
+      },
+      {
+        path: 'audit-log',
+        loadComponent: () =>
+          import('./components/home/audit-log/audit-log.component').then(
+            (m) => m.AuditLogComponent
+          ),
+      },
+      {
+        path: 'checklist-item',
+        loadComponent: () =>
+          import('./components/home/checklist-item/checklist-item.component').then(
+            (m) => m.ChecklistItemComponent
+          ),
+      },
+      {
         path: 'account',
         loadComponent: () =>
           import('./components/home/account/account.component').then(

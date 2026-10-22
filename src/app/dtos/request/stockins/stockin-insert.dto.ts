@@ -1,29 +1,24 @@
 import { StockInDetailInsertDTORequest } from '../stockin-details/stockin-detail-insert.dto';
 
+// Totals, prices and dates are computed by the server
 export class StockInInsertDTORequest {
-  totalProduct: number;
-  totalPrice: number;
-  stockInDate: Date;
-  statusInvoiceId: string;
-  stockInDetailInsertRequests: StockInDetailInsertDTORequest[];
   supplierId: string;
   warehouseId: string;
+  stockInDetailInsertRequests: StockInDetailInsertDTORequest[];
+  statusInvoiceId?: string | null;
+  stockInDate?: string | null;
 
   constructor(
-    totalProduct: any,
-    totalPrice: any,
-    stockInDate: any,
-    statusInvoiceId: any,
-    stockInDetailInsertRequests: any,
-    supplierId: any,
-    warehouseId: any
+    supplierId: string,
+    warehouseId: string,
+    stockInDetailInsertRequests: StockInDetailInsertDTORequest[],
+    statusInvoiceId?: string | null,
+    stockInDate?: string | null
   ) {
-    this.totalProduct = totalProduct;
-    this.totalPrice = totalPrice;
-    this.stockInDate = stockInDate;
-    this.statusInvoiceId = statusInvoiceId;
-    this.stockInDetailInsertRequests = stockInDetailInsertRequests;
     this.supplierId = supplierId;
     this.warehouseId = warehouseId;
+    this.stockInDetailInsertRequests = stockInDetailInsertRequests;
+    this.statusInvoiceId = statusInvoiceId;
+    this.stockInDate = stockInDate;
   }
 }
