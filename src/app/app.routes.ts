@@ -361,6 +361,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'chatbot',
+        loadComponent: () =>
+          import('./components/home/chatbot/chatbot.component').then(
+            (m) => m.ChatbotComponent
+          ),
+      },
+      {
         path: 'account',
         loadComponent: () =>
           import('./components/home/account/account.component').then(

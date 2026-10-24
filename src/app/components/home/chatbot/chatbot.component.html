@@ -1,0 +1,955 @@
+<div class="rag-page">
+  <!-- Compact Top Header & View Switcher -->
+  <div class="card rag-header-card mb-2">
+    <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-2 py-2 px-3">
+      <div class="d-flex align-items-center gap-2 min-w-0">
+        <div class="rag-brand-icon">
+          <i class="bi bi-robot"></i>
+        </div>
+        <div class="min-w-0">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <h1 class="h5 fw-bold mb-0 text-truncate">Trợ lý AI Siêu thị (RAG)</h1>
+            <span class="badge rounded-pill rag-status-pill">
+              <span class="rag-dot"></span>
+              Vector DB · {{ ragService.totalChunksCount() }} chunks
+            </span>
+          </div>
+          <p class="text-secondary small mb-0 d-none d-md-block text-truncate">
+            Truy vấn thông minh kết hợp dữ liệu Tồn kho, Hóa đơn thời gian thực và Tài liệu quy trình nội bộ (SOP)
+          </p>
+        </div>
+      </div>
+
+      <div class="btn-group btn-group-sm rag-tab-switcher" role="group" aria-label="Chuyển chế độ hiển thị RAG">
+        <button
+          type="button"
+          class="btn fw-semibold px-3"
+          [class.btn-primary]="activeTab() === 'chat'"
+          [class.btn-outline-primary]="activeTab() !== 'chat'"
+          (click)="activeTab.set('chat')"
+        >
+          <i class="bi bi-chat-dots me-1"></i>Trò chuyện & Truy vấn
+        </button>
+        <button
+          type="button"
+          class="btn fw-semibold px-3"
+          [class.btn-primary]="activeTab() === 'knowledge'"
+          [class.btn-outline-primary]="activeTab() !== 'knowledge'"
+          (click)="activeTab.set('knowledge')"
+        >
+          <i class="bi bi-database-check me-1"></i>Kho tri thức ({{ ragService.knowledgeSources().length }})
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 1: RAG CHAT WORKSPACE ==================== -->
+  @if (activeTab() === 'chat') {
+  <div
+    class="rag-workspace"
+    [class.left-closed]="!leftPanelOpen()"
+    [class.right-closed]="!rightPanelOpen()"
+  >
+    <!-- Backdrop for overlay drawers on tablet/mobile/compact screens -->
+    @if ((isMobileScreen() && leftPanelOpen()) || (isCompactScreen() && rightPanelOpen())) {
+    <div class="rag-drawer-backdrop" (click)="closeOverlayPanels()"></div>
+    }
+
+    <!-- Left Column: Conversation History -->
+    <aside
+      class="card rag-sidebar-card"
+      [class.drawer-open]="leftPanelOpen()"
+      [class.drawer-hidden]="!leftPanelOpen()"
+    >
+      <div class="card-header bg-transparent border-bottom p-2">
+        <div class="d-flex align-items-center gap-1 mb-2">
+          <button
+            type="button"
+            class="btn btn-primary btn-sm flex-grow-1 d-flex align-items-center justify-content-center gap-1 fw-semibold py-1"
+            (click)="createNewConversation()"
+          >
+            <i class="bi bi-plus-lg"></i>Cuộc trò chuyện mới
+          </button>
+          @if (isMobileScreen()) {
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            title="Đóng danh sách"
+            (click)="leftPanelOpen.set(false)"
+          >
+            <i class="bi bi-x-lg"></i>
+          </button>
+          }
+        </div>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-light border-end-0">
+            <i class="bi bi-search text-secondary"></i>
+          </span>
+          <input
+            type="text"
+            class="form-control border-start-0"
+            placeholder="Tìm lịch sử hội thoại..."
+            [ngModel]="conversationSearch()"
+            (ngModelChange)="conversationSearch.set($event)"
+          />
+        </div>
+      </div>
+
+      <div class="rag-conv-list p-2">
+        <div class="px-2 py-1 text-uppercase text-secondary fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.03em;">
+          Phiên truy vấn gần đây
+        </div>
+        @for (conv of filteredConversations(); track conv.id) {
+        <div
+          class="rag-conv-item"
+          [class.active]="conv.id === ragService.activeConversationId()"
+          (click)="selectConversation(conv.id)"
+        >
+          <div class="rag-conv-icon">
+            @switch (conv.category) {
+              @case ('inventory') { <i class="bi bi-box-seam"></i> }
+              @case ('policy') { <i class="bi bi-file-earmark-text"></i> }
+              @case ('sales') { <i class="bi bi-graph-up"></i> }
+              @default { <i class="bi bi-chat-left-text"></i> }
+            }
+          </div>
+          <div class="rag-conv-meta">
+            <div class="rag-conv-title" [title]="conv.title">{{ conv.title }}</div>
+            <div class="rag-conv-sub">
+              {{ conv.messages.length }} tin nhắn · {{ conv.updatedAt | date: 'HH:mm dd/MM' }}
+            </div>
+          </div>
+          <button
+            type="button"
+            class="btn btn-sm btn-link text-secondary p-1 rag-conv-delete"
+            title="Xóa cuộc trò chuyện"
+            (click)="$event.stopPropagation(); ragService.deleteConversation(conv.id)"
+          >
+            <i class="bi bi-trash3"></i>
+          </button>
+        </div>
+        }
+      </div>
+
+      <div class="card-footer bg-light border-top p-2 small">
+        <div class="d-flex align-items-center justify-content-between">
+          <span class="text-secondary" style="font-size: 0.75rem;">Phạm vi:</span>
+          <button
+            type="button"
+            class="btn btn-link btn-sm p-0 text-decoration-none"
+            style="font-size: 0.75rem;"
+            (click)="openConfigPanel()"
+          >
+            Cấu hình
+          </button>
+        </div>
+        <div class="fw-semibold text-primary text-truncate" style="font-size: 0.8rem;">
+          <i class="bi bi-layers me-1"></i>{{ ragService.getScopeLabel(ragService.config().knowledgeScope) }}
+        </div>
+      </div>
+    </aside>
+
+    <!-- Center Column: Active Chat & Citations -->
+    <section class="card rag-chat-card">
+      <!-- Sleek Single-Line Chat Toolbar -->
+      <div class="card-header bg-white border-bottom py-2 px-3 d-flex align-items-center justify-content-between gap-2">
+        <div class="d-flex align-items-center gap-2 min-w-0">
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary flex-shrink-0"
+            (click)="toggleLeftPanel()"
+            [title]="leftPanelOpen() ? 'Ẩn lịch sử hội thoại' : 'Mở lịch sử hội thoại'"
+          >
+            <i class="bi bi-layout-sidebar"></i>
+          </button>
+          <i class="bi bi-stars text-primary d-none d-sm-inline"></i>
+          <h2 class="h6 fw-bold mb-0 text-truncate" [title]="ragService.activeConversation().title">
+            {{ ragService.activeConversation().title }}
+          </h2>
+        </div>
+
+        <div class="d-flex align-items-center gap-1 flex-shrink-0">
+          <button
+            type="button"
+            class="btn btn-sm btn-light border d-none d-md-inline-flex align-items-center gap-1"
+            style="font-size: 0.76rem;"
+            (click)="openConfigPanel()"
+            title="Chỉnh tham số truy xuất RAG"
+          >
+            <i class="bi bi-sliders text-primary"></i>
+            <span>Top-K: {{ ragService.config().topK }}</span>
+            <span class="text-secondary">·</span>
+            <span>≥{{ formatScorePercent(ragService.config().similarityThreshold) }}%</span>
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-sm"
+            [class.btn-primary]="rightPanelOpen()"
+            [class.btn-outline-secondary]="!rightPanelOpen()"
+            (click)="toggleRightPanel()"
+            title="Đóng/Mở bảng Chi tiết Chunk & Cấu hình RAG"
+          >
+            <i class="bi bi-layout-sidebar-reverse"></i>
+            <span class="d-none d-sm-inline ms-1">
+              {{ rightPanelOpen() ? 'Ẩn chi tiết' : 'Nguồn & Cấu hình' }}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Single-line Horizontal Scrollable Quick Prompts Strip (when chat has messages) -->
+      @if (ragService.activeConversation().messages.length > 0) {
+      <div class="rag-quick-strip px-3 py-1 bg-light border-bottom">
+        <span class="text-secondary small flex-shrink-0">
+          <i class="bi bi-lightning-charge text-primary me-1"></i>Hỏi nhanh:
+        </span>
+        @for (sp of ragService.suggestedPrompts; track sp.id) {
+        <button
+          type="button"
+          class="btn btn-sm btn-white bg-white border rounded-pill py-0 px-2 flex-shrink-0"
+          style="font-size: 0.75rem;"
+          (click)="useSuggestedPrompt(sp)"
+        >
+          <i class="bi {{ sp.icon }} text-primary me-1"></i>{{ sp.label }}
+        </button>
+        }
+      </div>
+      }
+
+      <!-- Messages Stream -->
+      <div class="rag-messages-container" #chatScrollContainer>
+        @if (ragService.activeConversation().messages.length === 0) {
+        <div class="rag-empty-state text-center my-auto py-3 px-2">
+          <div class="rag-empty-icon mx-auto mb-2">
+            <i class="bi bi-robot"></i>
+          </div>
+          <h3 class="h6 fw-bold mb-1">Xin chào! Tôi có thể hỗ trợ tra cứu gì cho ca làm việc hôm nay?</h3>
+          <p class="text-secondary small mx-auto mb-3" style="max-width: 520px;">
+            Hệ thống RAG tự động tìm kiếm thông tin từ cơ sở dữ liệu Kho, Sản phẩm, Hóa đơn và các Tài liệu quy trình vận hành siêu thị kèm trích dẫn nguồn minh bạch.
+          </p>
+
+          <div class="row g-2 text-start mx-auto" style="max-width: 680px;">
+            @for (sp of ragService.suggestedPrompts; track sp.id) {
+            <div class="col-12 col-sm-6">
+              <button
+                type="button"
+                class="rag-prompt-card w-100 text-start"
+                (click)="useSuggestedPrompt(sp)"
+              >
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <span class="badge bg-primary-subtle text-primary">{{ sp.category }}</span>
+                  <i class="bi {{ sp.icon }} text-primary"></i>
+                </div>
+                <div class="fw-semibold small mb-1">{{ sp.label }}</div>
+                <div class="text-secondary" style="font-size: 0.76rem;">{{ sp.prompt }}</div>
+              </button>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+        <!-- Message Items -->
+        @for (msg of ragService.activeConversation().messages; track msg.id) {
+        <div class="rag-msg-row" [class.rag-msg-user]="msg.role === 'user'" [class.rag-msg-assistant]="msg.role === 'assistant'">
+          <div class="rag-avatar d-none d-sm-flex" [class.user-avatar]="msg.role === 'user'" [class.ai-avatar]="msg.role === 'assistant'">
+            @if (msg.role === 'user') {
+              <i class="bi bi-person-fill"></i>
+            } @else {
+              <i class="bi bi-robot"></i>
+            }
+          </div>
+
+          <div class="rag-msg-body">
+            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+              <span class="fw-semibold small">
+                {{ msg.role === 'user' ? 'Bạn' : 'Trợ lý AI Siêu thị' }}
+              </span>
+              <span class="text-secondary" style="font-size: 0.73rem;">
+                {{ msg.timestamp | date: 'HH:mm' }}
+              </span>
+
+              @if (msg.retrievalMetrics) {
+              <span class="badge rounded-pill text-bg-light border text-secondary" style="font-size: 0.7rem;">
+                <i class="bi bi-hdd-network text-primary me-1"></i>
+                {{ msg.retrievalMetrics.latencyMs }}ms · {{ msg.retrievalMetrics.chunksScanned }} chunks · Top-{{ msg.retrievalMetrics.topKUsed }} ({{ msg.retrievalMetrics.knowledgeScopeLabel }})
+              </span>
+              }
+            </div>
+
+            <div class="rag-bubble" [class.user-bubble]="msg.role === 'user'" [class.ai-bubble]="msg.role === 'assistant'">
+              <div class="rag-text-content" [innerHTML]="formatMessageHtml(msg.content)"></div>
+            </div>
+
+            <!-- RAG Citations / Retrieved Chunks under AI response -->
+            @if (msg.citations && msg.citations.length > 0) {
+            <div class="rag-citations-box mt-2">
+              <div class=" text-secondary mb-1 d-flex align-items-center gap-1" style="font-size: 0.76rem; font-weight: 600;">
+                <i class="bi bi-journal-bookmark-fill text-primary"></i>
+                Nguồn dữ liệu tham chiếu ({{ msg.citations.length }} chunks — bấm để xem đoạn trích gốc):
+              </div>
+              <div class="rag-citations-grid">
+                @for (cit of msg.citations; track cit.id; let idx = $index) {
+                <button
+                  type="button"
+                  class="rag-citation-card text-start"
+                  [class.active]="ragService.selectedCitation()?.id === cit.id && rightPanelOpen()"
+                  (click)="inspectCitation(cit)"
+                >
+                  <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
+                    <span class="badge bg-primary-subtle text-primary" style="font-size: 0.68rem;">
+                      #{{ idx + 1 }} ·
+                      @if (cit.sourceType === 'database') {
+                        <i class="bi bi-database me-1"></i>Live DB
+                      } @else if (cit.sourceType === 'policy') {
+                        <i class="bi bi-shield-check me-1"></i>SOP
+                      } @else {
+                        <i class="bi bi-file-earmark-text me-1"></i>Tài liệu
+                      }
+                    </span>
+                    <span class="badge text-bg-success" style="font-size: 0.68rem;">
+                      {{ formatScorePercent(cit.similarityScore) }}% khớp
+                    </span>
+                  </div>
+                  <div class="fw-semibold text-truncate" style="font-size: 0.8rem;" [title]="cit.sourceTitle">
+                    {{ cit.sourceTitle }}
+                  </div>
+                  <div class="text-secondary text-truncate" style="font-size: 0.72rem;">
+                    {{ cit.chunkIndex }}
+                  </div>
+                </button>
+                }
+              </div>
+            </div>
+            }
+
+            <!-- Assistant Message Actions -->
+            @if (msg.role === 'assistant') {
+            <div class="d-flex align-items-center gap-2 mt-1">
+              <button
+                type="button"
+                class="btn btn-sm btn-link text-secondary p-0 text-decoration-none"
+                style="font-size: 0.75rem;"
+                (click)="copyMessage(msg.id, msg.content)"
+              >
+                @if (copiedMessageId() === msg.id) {
+                  <i class="bi bi-check2 text-success me-1"></i>Đã sao chép
+                } @else {
+                  <i class="bi bi-copy me-1"></i>Sao chép
+                }
+              </button>
+              <span class="text-secondary">·</span>
+              <button
+                type="button"
+                class="btn btn-sm btn-link p-0 text-decoration-none"
+                [class.text-success]="msg.feedback === 'up'"
+                [class.text-secondary]="msg.feedback !== 'up'"
+                style="font-size: 0.75rem;"
+                (click)="ragService.setMessageFeedback(msg.id, 'up')"
+              >
+                <i class="bi bi-hand-thumbs-up me-1"></i>Hữu ích
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm btn-link p-0 text-decoration-none"
+                [class.text-danger]="msg.feedback === 'down'"
+                [class.text-secondary]="msg.feedback !== 'down'"
+                style="font-size: 0.75rem;"
+                (click)="ragService.setMessageFeedback(msg.id, 'down')"
+              >
+                <i class="bi bi-hand-thumbs-down me-1"></i>Báo sai lệch
+              </button>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+        <!-- RAG Retrieving / Generating Indicator -->
+        @if (ragService.isRetrieving()) {
+        <div class="rag-msg-row rag-msg-assistant">
+          <div class="rag-avatar ai-avatar d-none d-sm-flex">
+            <i class="bi bi-robot"></i>
+          </div>
+          <div class="rag-msg-body">
+            <div class="rag-bubble ai-bubble d-flex align-items-center gap-3">
+              <div class="spinner-border spinner-border-sm text-primary" role="status">
+                <span class="visually-hidden">Đang xử lý...</span>
+              </div>
+              <div>
+                <div class="fw-semibold small text-primary">Đang thực thi pipeline RAG...</div>
+                <div class="text-secondary small">{{ ragService.retrievalStage() }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- Compact Chat Composer Footer -->
+      <div class="card-footer bg-white border-top p-2 px-3">
+        <!-- Scope Filter Bar (horizontal scroll on mobile, pills on desktop) -->
+        <div class="rag-scope-bar mb-2">
+          <span class="text-secondary flex-shrink-0" style="font-size: 0.75rem;">
+            <i class="bi bi-funnel me-1"></i>Nguồn:
+          </span>
+          <button
+            type="button"
+            class="btn btn-sm rounded-pill py-0 px-2 flex-shrink-0"
+            style="font-size: 0.74rem;"
+            [class.btn-primary]="ragService.config().knowledgeScope === 'all'"
+            [class.btn-outline-secondary]="ragService.config().knowledgeScope !== 'all'"
+            (click)="setScope('all')"
+          >
+            Tất cả nguồn
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm rounded-pill py-0 px-2 flex-shrink-0"
+            style="font-size: 0.74rem;"
+            [class.btn-primary]="ragService.config().knowledgeScope === 'inventory_db'"
+            [class.btn-outline-secondary]="ragService.config().knowledgeScope !== 'inventory_db'"
+            (click)="setScope('inventory_db')"
+          >
+            Sản phẩm & Kho (DB)
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm rounded-pill py-0 px-2 flex-shrink-0"
+            style="font-size: 0.74rem;"
+            [class.btn-primary]="ragService.config().knowledgeScope === 'sop_docs'"
+            [class.btn-outline-secondary]="ragService.config().knowledgeScope !== 'sop_docs'"
+            (click)="setScope('sop_docs')"
+          >
+            Quy trình SOP
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm rounded-pill py-0 px-2 flex-shrink-0"
+            style="font-size: 0.74rem;"
+            [class.btn-primary]="ragService.config().knowledgeScope === 'sales_reports'"
+            [class.btn-outline-secondary]="ragService.config().knowledgeScope !== 'sales_reports'"
+            (click)="setScope('sales_reports')"
+          >
+            Hóa đơn & Doanh thu
+          </button>
+        </div>
+
+        <div class="input-group">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Nhập câu hỏi về tồn kho, lô hàng, quy trình đổi trả, kiểm kê... (Enter để gửi)"
+            [ngModel]="questionInput()"
+            (ngModelChange)="questionInput.set($event)"
+            (keydown)="onKeyDown($event)"
+          />
+          <button
+            type="button"
+            class="btn btn-primary px-3 px-md-4 d-flex align-items-center gap-2 fw-semibold"
+            [disabled]="!questionInput().trim() || ragService.isRetrieving()"
+            (click)="onSend()"
+          >
+            <i class="bi bi-send-fill"></i>
+            <span class="d-none d-sm-inline">Truy vấn</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column / Slide-Over Drawer: Citation Chunk Inspector & RAG Settings -->
+    <aside
+      class="card rag-inspector-card"
+      [class.drawer-open]="rightPanelOpen()"
+      [class.drawer-hidden]="!rightPanelOpen()"
+    >
+      <div class="card-header bg-transparent border-bottom p-2 d-flex align-items-center gap-1">
+        <div class="nav nav-pills nav-fill gap-1 flex-grow-1">
+          <button
+            type="button"
+            class="nav-link py-1 px-2 small fw-semibold"
+            [class.active]="rightPanelTab() === 'inspector'"
+            (click)="rightPanelTab.set('inspector')"
+          >
+            <i class="bi bi-file-earmark-code me-1"></i>Chi tiết Chunk
+          </button>
+          <button
+            type="button"
+            class="nav-link py-1 px-2 small fw-semibold"
+            [class.active]="rightPanelTab() === 'config'"
+            (click)="rightPanelTab.set('config')"
+          >
+            <i class="bi bi-sliders me-1"></i>Cấu hình RAG
+          </button>
+        </div>
+        <button
+          type="button"
+          class="btn btn-sm btn-light border flex-shrink-0"
+          title="Đóng bảng bên phải"
+          (click)="rightPanelOpen.set(false)"
+        >
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <div class="card-body p-3 overflow-auto">
+        <!-- Sub-tab: Citation / Chunk Inspector -->
+        @if (rightPanelTab() === 'inspector') {
+          @let cit = ragService.selectedCitation();
+          @if (cit) {
+          <div>
+            <div class="d-flex align-items-center justify-content-between gap-1 flex-wrap mb-2">
+              <span class="badge bg-primary-subtle text-primary">
+                @if (cit.sourceType === 'database') {
+                  <i class="bi bi-database me-1"></i>Bản ghi Cơ sở dữ liệu
+                } @else if (cit.sourceType === 'policy') {
+                  <i class="bi bi-shield-check me-1"></i>Tài liệu Quy định (SOP)
+                } @else {
+                  <i class="bi bi-file-earmark-text me-1"></i>Tài liệu Nội bộ
+                }
+              </span>
+              <span class="small text-secondary">{{ cit.chunkIndex }}</span>
+            </div>
+
+            <h3 class="h6 fw-bold mb-1 text-break">{{ cit.sourceTitle }}</h3>
+            <p class="text-secondary small mb-3">{{ cit.metadata }}</p>
+
+            <!-- Similarity Meter -->
+            <div class="p-2 rounded bg-light border mb-3">
+              <div class="d-flex align-items-center justify-content-between small mb-1">
+                <span class="fw-semibold">Điểm tương đồng (Cosine)</span>
+                <span class="fw-bold text-success">{{ formatScorePercent(cit.similarityScore) }}%</span>
+              </div>
+              <div class="progress" style="height: 8px;">
+                <div
+                  class="progress-bar bg-success"
+                  role="progressbar"
+                  [style.width.%]="formatScorePercent(cit.similarityScore)"
+                ></div>
+              </div>
+            </div>
+
+            <!-- Retrieved Snippet -->
+            <div class="mb-3">
+              <div class="small fw-semibold text-uppercase text-secondary mb-1" style="font-size: 0.72rem;">
+                Nội dung đoạn trích (Retrieved Passage)
+              </div>
+              <div class="rag-chunk-snippet">
+                {{ cit.snippet }}
+              </div>
+            </div>
+
+            <div class="alert alert-light border small mb-0" style="font-size: 0.78rem;">
+              <i class="bi bi-info-circle text-primary me-1"></i>
+              Đoạn dữ liệu này được trích xuất trực tiếp từ Vector Index để làm căn cứ (grounding) sinh câu trả lời, hạn chế suy diễn (hallucination).
+            </div>
+          </div>
+          } @else {
+          <div class="text-center text-secondary py-5">
+            <i class="bi bi-journal-text fs-1 d-block mb-2 opacity-50"></i>
+            <p class="small mb-0">
+              Bấm vào bất kỳ thẻ <strong>Nguồn dữ liệu tham chiếu</strong> nào dưới câu trả lời của AI để xem đoạn văn bản gốc và điểm tương đồng.
+            </p>
+          </div>
+          }
+        }
+
+        <!-- Sub-tab: RAG Configuration -->
+        @if (rightPanelTab() === 'config') {
+        <div class="d-flex flex-column gap-3">
+          <div>
+            <label class="form-label small fw-semibold mb-1">
+              Phạm vi Kho tri thức (Knowledge Scope)
+            </label>
+            <select
+              class="form-select form-select-sm"
+              [ngModel]="ragService.config().knowledgeScope"
+              (ngModelChange)="setScope($event)"
+            >
+              <option value="all">Tất cả nguồn tri thức (DB + Tài liệu)</option>
+              <option value="inventory_db">Chỉ Dữ liệu Sản phẩm & Kho (Live DB)</option>
+              <option value="sop_docs">Chỉ Tài liệu Quy trình nội bộ (SOP)</option>
+              <option value="sales_reports">Chỉ Hóa đơn & Báo cáo doanh thu</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="fw-semibold">Số lượng đoạn trích (Top-K Chunks)</span>
+              <span class="badge text-bg-primary">{{ ragService.config().topK }} chunks</span>
+            </div>
+            <div class="btn-group btn-group-sm w-100" role="group">
+              @for (k of [2, 3, 4, 6, 8]; track k) {
+              <button
+                type="button"
+                class="btn"
+                [class.btn-primary]="ragService.config().topK === k"
+                [class.btn-outline-secondary]="ragService.config().topK !== k"
+                (click)="setTopK(k)"
+              >
+                {{ k }}
+              </button>
+              }
+            </div>
+            <div class="form-text" style="font-size: 0.73rem;">
+              Số đoạn văn bản có độ tương đồng cao nhất được đưa vào ngữ cảnh LLM.
+            </div>
+          </div>
+
+          <div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="fw-semibold">Ngưỡng độ khớp tối thiểu (Threshold)</span>
+              <span class="badge text-bg-secondary">
+                ≥ {{ formatScorePercent(ragService.config().similarityThreshold) }}%
+              </span>
+            </div>
+            <div class="btn-group btn-group-sm w-100" role="group">
+              @for (th of [0.65, 0.75, 0.80, 0.85]; track th) {
+              <button
+                type="button"
+                class="btn"
+                [class.btn-primary]="ragService.config().similarityThreshold === th"
+                [class.btn-outline-secondary]="ragService.config().similarityThreshold !== th"
+                (click)="setThreshold(th)"
+              >
+                {{ formatScorePercent(th) }}%
+              </button>
+              }
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label small fw-semibold mb-1">Chế độ tổng hợp câu trả lời</label>
+            <div class="d-flex flex-column gap-1">
+              <label class="rag-radio-option">
+                <input
+                  type="radio"
+                  name="respMode"
+                  class="form-check-input"
+                  [checked]="ragService.config().responseMode === 'strict'"
+                  (change)="setResponseMode('strict')"
+                />
+                <div>
+                  <div class="small fw-semibold">Chính xác theo tài liệu (Strict)</div>
+                  <div class="text-secondary" style="font-size: 0.72rem;">Chỉ trả lời dựa trên nguồn tìm thấy, từ chối nếu không có dữ liệu.</div>
+                </div>
+              </label>
+              <label class="rag-radio-option">
+                <input
+                  type="radio"
+                  name="respMode"
+                  class="form-check-input"
+                  [checked]="ragService.config().responseMode === 'balanced'"
+                  (change)="setResponseMode('balanced')"
+                />
+                <div>
+                  <div class="small fw-semibold">Cân bằng (Balanced)</div>
+                  <div class="text-secondary" style="font-size: 0.72rem;">Kết hợp nguồn trích dẫn và gợi ý nghiệp vụ liên quan.</div>
+                </div>
+              </label>
+              <label class="rag-radio-option">
+                <input
+                  type="radio"
+                  name="respMode"
+                  class="form-check-input"
+                  [checked]="ragService.config().responseMode === 'detailed'"
+                  (change)="setResponseMode('detailed')"
+                />
+                <div>
+                  <div class="small fw-semibold">Phân tích chi tiết (Detailed)</div>
+                  <div class="text-secondary" style="font-size: 0.72rem;">Tổng hợp sâu từ nhiều nguồn và so sánh số liệu.</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-check form-switch pt-2 border-top">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="rerankerToggle"
+              [checked]="ragService.config().rerankerEnabled"
+              (change)="toggleReranker()"
+            />
+            <label class="form-check-label small fw-semibold" for="rerankerToggle">
+              Bật Cross-Encoder Reranking
+            </label>
+            <div class="text-secondary" style="font-size: 0.72rem;">
+              Chấm điểm và sắp xếp lại độ ưu tiên các chunks trước khi sinh câu trả lời.
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+    </aside>
+  </div>
+  }
+
+  <!-- ==================== TAB 2: KNOWLEDGE BASE MANAGEMENT ==================== -->
+  @if (activeTab() === 'knowledge') {
+  <div>
+    <!-- Knowledge Base KPI Summary -->
+    <div class="row g-2 g-md-3 mb-3">
+      <div class="col-6 col-lg-3">
+        <div class="card h-100">
+          <div class="card-body p-3">
+            <div class="small text-secondary">Tổng nguồn tri thức</div>
+            <div class="fs-4 fw-bold">{{ ragService.knowledgeSources().length }}</div>
+            <div class="small text-secondary">
+              {{ dbSourcesCount() }} kết nối DB · {{ docSourcesCount() }} tài liệu
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card h-100">
+          <div class="card-body p-3">
+            <div class="small text-secondary">Tổng số Vector Chunks</div>
+            <div class="fs-4 fw-bold text-primary">{{ ragService.totalChunksCount() | number }}</div>
+            <div class="small text-secondary">Kích thước chunk: 512 tokens</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card h-100">
+          <div class="card-body p-3">
+            <div class="small text-secondary">Mô hình Embedding</div>
+            <div class="fs-6 fw-bold text-truncate mt-1">multilingual-e5-large</div>
+            <div class="small text-secondary">Hỗ trợ tiếng Việt chuyên ngành</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card h-100">
+          <div class="card-body p-3">
+            <div class="small text-secondary">Trạng thái Vector Index</div>
+            <div class="fs-6 fw-bold text-success mt-1">
+              <i class="bi bi-check-circle-fill me-1"></i>Đang hoạt động
+            </div>
+            <div class="small text-secondary">Độ trễ trung bình: ~350ms</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload Document Card (Collapsible) -->
+    @if (showUploadModal()) {
+    <div class="card border-primary mb-3">
+      <div class="card-header bg-primary-subtle text-primary d-flex align-items-center justify-content-between">
+        <span class="fw-bold small">
+          <i class="bi bi-cloud-arrow-up-fill me-2"></i>Tải lên tài liệu bổ sung vào Kho tri thức RAG
+        </span>
+        <button type="button" class="btn-close" aria-label="Đóng" (click)="showUploadModal.set(false)"></button>
+      </div>
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-md-5">
+            <label class="form-label small fw-semibold">Chọn tệp tài liệu (PDF, DOCX, CSV)</label>
+            <input
+              type="file"
+              class="form-control form-control-sm"
+              accept=".pdf,.docx,.doc,.csv,.txt"
+              (change)="onFileSelected($event)"
+            />
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label small fw-semibold">Hoặc nhập tên tài liệu quy trình</label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              placeholder="VD: Chinh_sach_khuyen_mai_2026.pdf"
+              [ngModel]="uploadFileName()"
+              (ngModelChange)="uploadFileName.set($event)"
+            />
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label small fw-semibold">Phân loại nghiệp vụ</label>
+            <select
+              class="form-select form-select-sm"
+              [ngModel]="uploadCategory()"
+              (ngModelChange)="uploadCategory.set($event)"
+            >
+              <option value="Quy trình vận hành (SOP)">Quy trình vận hành (SOP)</option>
+              <option value="Quy trình kho">Quy trình kho</option>
+              <option value="Định mức hàng hóa">Định mức hàng hóa</option>
+              <option value="Chính sách bán hàng">Chính sách bán hàng</option>
+            </select>
+          </div>
+        </div>
+        <div class="d-flex justify-content-end gap-2 mt-3">
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="showUploadModal.set(false)">
+            Hủy
+          </button>
+          <button type="button" class="btn btn-sm btn-primary" (click)="submitUploadDocument()">
+            <i class="bi bi-cpu me-1"></i>Tách Chunk & Lập chỉ mục Vector
+          </button>
+        </div>
+      </div>
+    </div>
+    }
+
+    <!-- Sample Chunk Preview Alert -->
+    @if (previewSource(); as src) {
+    <div class="card border-info mb-3">
+      <div class="card-body py-2 px-3 d-flex align-items-start justify-content-between gap-3">
+        <div class="min-w-0">
+          <div class="small fw-bold text-primary mb-1">
+            <i class="bi bi-eye me-1"></i>Mẫu Chunk đã trích xuất từ: {{ src.name }}
+          </div>
+          <div class="rag-chunk-snippet small">{{ src.sampleChunk }}</div>
+        </div>
+        <button type="button" class="btn-close mt-1 flex-shrink-0" aria-label="Đóng" (click)="previewSource.set(null)"></button>
+      </div>
+    </div>
+    }
+
+    <!-- Knowledge Base List & Filters -->
+    <div class="card">
+      <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="d-flex align-items-center gap-2 flex-wrap flex-grow-1">
+          <div class="input-group input-group-sm" style="max-width: 260px;">
+            <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Tìm tên tài liệu, bảng dữ liệu..."
+              [ngModel]="kbSearch()"
+              (ngModelChange)="kbSearch.set($event)"
+            />
+          </div>
+
+          <div class="btn-group btn-group-sm" role="group">
+            <button
+              type="button"
+              class="btn"
+              [class.btn-primary]="kbTypeFilter() === 'all'"
+              [class.btn-outline-secondary]="kbTypeFilter() !== 'all'"
+              (click)="kbTypeFilter.set('all')"
+            >
+              Tất cả
+            </button>
+            <button
+              type="button"
+              class="btn"
+              [class.btn-primary]="kbTypeFilter() === 'db_sync'"
+              [class.btn-outline-secondary]="kbTypeFilter() !== 'db_sync'"
+              (click)="kbTypeFilter.set('db_sync')"
+            >
+              Đồng bộ DB
+            </button>
+            <button
+              type="button"
+              class="btn"
+              [class.btn-primary]="kbTypeFilter() === 'document'"
+              [class.btn-outline-secondary]="kbTypeFilter() !== 'document'"
+              (click)="kbTypeFilter.set('document')"
+            >
+              Tài liệu tải lên
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="btn btn-primary btn-sm d-flex align-items-center gap-1"
+          (click)="showUploadModal.set(!showUploadModal())"
+        >
+          <i class="bi bi-cloud-upload"></i>Thêm tài liệu vào RAG
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Nguồn dữ liệu / Tài liệu</th>
+              <th class="d-none d-md-table-cell">Phân loại</th>
+              <th class="d-none d-lg-table-cell">Quy mô</th>
+              <th class="text-center">Số Chunks</th>
+              <th>Trạng thái Vector</th>
+              <th class="d-none d-xl-table-cell">Cập nhật cuối</th>
+              <th class="text-end">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (source of filteredKnowledgeSources(); track source.id) {
+            <tr>
+              <td style="min-width: 220px;">
+                <div class="d-flex align-items-start gap-2">
+                  <span class="rag-doc-badge" [attr.data-type]="source.type">
+                    @switch (source.type) {
+                      @case ('db_sync') { <i class="bi bi-database-fill"></i> }
+                      @case ('pdf') { <i class="bi bi-file-earmark-pdf-fill"></i> }
+                      @case ('docx') { <i class="bi bi-file-earmark-word-fill"></i> }
+                      @default { <i class="bi bi-filetype-csv"></i> }
+                    }
+                  </span>
+                  <div class="min-w-0">
+                    <div class="fw-semibold text-break">{{ source.name }}</div>
+                    <div class="text-secondary small">{{ source.description }}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="d-none d-md-table-cell">
+                <span class="badge text-bg-light border">{{ source.category }}</span>
+              </td>
+              <td class="small text-secondary d-none d-lg-table-cell">{{ source.sizeOrRecords }}</td>
+              <td class="text-center fw-bold">{{ source.chunkCount }}</td>
+              <td>
+                @if (source.vectorStatus === 'indexed') {
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">
+                    <i class="bi bi-check2-circle me-1"></i>Đã lập chỉ mục
+                  </span>
+                } @else if (source.vectorStatus === 'indexing') {
+                  <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">
+                    <span class="spinner-border spinner-border-sm me-1" style="width: 0.7rem; height: 0.7rem;"></span>
+                    Đang tách chunk...
+                  </span>
+                } @else {
+                  <span class="badge bg-danger-subtle text-danger">Lỗi đồng bộ</span>
+                }
+              </td>
+              <td class="small text-secondary d-none d-xl-table-cell">
+                {{ source.lastUpdated | date: 'HH:mm dd/MM/yyyy' }}
+              </td>
+              <td class="text-end">
+                <div class="btn-group btn-group-sm">
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    title="Xem đoạn chunk mẫu"
+                    (click)="previewSource.set(source)"
+                  >
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-primary"
+                    title="Đồng bộ & Lập chỉ mục lại"
+                    [disabled]="source.vectorStatus === 'indexing'"
+                    (click)="ragService.syncKnowledgeSource(source.id)"
+                  >
+                    <i class="bi bi-arrow-repeat"></i>
+                  </button>
+                  @if (source.type !== 'db_sync') {
+                  <button
+                    type="button"
+                    class="btn btn-outline-danger"
+                    title="Xóa tài liệu khỏi Vector DB"
+                    (click)="ragService.removeKnowledgeSource(source.id)"
+                  >
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                  }
+                </div>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  }
+</div>

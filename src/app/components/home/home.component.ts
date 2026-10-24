@@ -15,10 +15,17 @@ import { RoleService } from '../../services/role.service';
 import { FooterComponent } from '../footer/footer.component';
 import { HeaderComponent } from '../header/header.component';
 import { SidebarComponent } from '../sidebar/sidebar.component';
+import { ChatbotWidgetComponent } from '../chatbot-widget/chatbot-widget.component';
 
 @Component({
   selector: 'app-home',
-  imports: [HeaderComponent, SidebarComponent, FooterComponent, RouterOutlet],
+  imports: [
+    HeaderComponent,
+    SidebarComponent,
+    FooterComponent,
+    RouterOutlet,
+    ChatbotWidgetComponent,
+  ],
   templateUrl: './home.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './home.component.css',
