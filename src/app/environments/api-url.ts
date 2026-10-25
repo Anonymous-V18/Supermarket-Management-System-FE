@@ -135,5 +135,21 @@ export const ApiUrl = {
     insert: `${environment.apiUrl}/checklist-items/insert`,
     update: `${environment.apiUrl}/checklist-items/update`,
   },
+  chatbot: {
+    capabilities: `${environment.apiUrl}/chatbot/capabilities`,
+    ask: `${environment.apiUrl}/chatbot/ask`,
+    conversations: `${environment.apiUrl}/chatbot/conversations/show-all`,
+    messages: `${environment.apiUrl}/chatbot/conversations/get-messages`,
+    deleteConversation: `${environment.apiUrl}/chatbot/conversations/delete`,
+    feedback: `${environment.apiUrl}/chatbot/messages/update`,
+  },
+  knowledgeDocument: {
+    showAll: `${environment.apiUrl}/knowledge-documents/show-all`,
+    insert: `${environment.apiUrl}/knowledge-documents/insert`,
+    update: `${environment.apiUrl}/knowledge-documents/update`,
+    delete: `${environment.apiUrl}/knowledge-documents/delete`,
+    reindex: `${environment.apiUrl}/knowledge-documents/reindex`,
+    reindexAll: `${environment.apiUrl}/knowledge-documents/reindex-all`,
+  },
   logout: `${environment.apiUrl}/auth/logout`,
 };

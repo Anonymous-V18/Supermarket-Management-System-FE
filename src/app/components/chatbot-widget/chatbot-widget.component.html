@@ -1,218 +1,39 @@
-@if (!isOnDedicatedChatbotPage()) {
-<div class="rag-widget-wrapper">
-  <!-- Floating Chat Window -->
-  @if (ragService.widgetOpen()) {
-  <div class="rag-widget-panel shadow-lg" role="dialog" aria-label="Trợ lý AI Siêu thị RAG">
-    <!-- Widget Header -->
-    <div class="rag-widget-header d-flex align-items-center justify-content-between px-3 py-2">
-      <div class="d-flex align-items-center gap-2 min-w-0">
-        <div class="rag-widget-avatar">
-          <i class="bi bi-robot"></i>
-        </div>
-        <div class="min-w-0">
-          <div class="fw-bold small text-white text-truncate">Trợ lý AI Siêu thị</div>
-          <div class="rag-widget-subtitle">
-            <span class="rag-live-dot"></span>RAG · {{ ragService.totalChunksCount() }} chunks
-          </div>
-        </div>
-      </div>
-
-      <div class="d-flex align-items-center gap-1">
-        <button
-          type="button"
-          class="btn btn-sm rag-widget-icon-btn"
-          title="Tạo cuộc trò chuyện mới"
-          (click)="ragService.createNewConversation()"
-        >
-          <i class="bi bi-plus-lg"></i>
-        </button>
-        <button
-          type="button"
-          class="btn btn-sm rag-widget-icon-btn"
-          title="Mở trang Trợ lý RAG & Kho tri thức đầy đủ"
-          (click)="openFullPage()"
-        >
-          <i class="bi bi-arrows-angle-expand"></i>
-        </button>
-        <button
-          type="button"
-          class="btn btn-sm rag-widget-icon-btn"
-          title="Thu gọn"
-          (click)="ragService.closeWidget()"
-        >
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
-    </div>
-
-    <!-- Quick Knowledge Scope Bar -->
-    <div class="bg-light border-bottom px-2 py-1 d-flex align-items-center justify-content-between gap-1">
-      <div class="d-flex align-items-center gap-1 overflow-auto py-1">
-        <button
-          type="button"
-          class="btn btn-sm rounded-pill py-0 px-2"
-          style="font-size: 0.72rem;"
-          [class.btn-primary]="ragService.config().knowledgeScope === 'all'"
-          [class.btn-outline-secondary]="ragService.config().knowledgeScope !== 'all'"
-          (click)="setScope('all')"
-        >
-          Tất cả
-        </button>
-        <button
-          type="button"
-          class="btn btn-sm rounded-pill py-0 px-2"
-          style="font-size: 0.72rem;"
-          [class.btn-primary]="ragService.config().knowledgeScope === 'inventory_db'"
-          [class.btn-outline-secondary]="ragService.config().knowledgeScope !== 'inventory_db'"
-          (click)="setScope('inventory_db')"
-        >
-          Kho & SP
-        </button>
-        <button
-          type="button"
-          class="btn btn-sm rounded-pill py-0 px-2"
-          style="font-size: 0.72rem;"
-          [class.btn-primary]="ragService.config().knowledgeScope === 'sop_docs'"
-          [class.btn-outline-secondary]="ragService.config().knowledgeScope !== 'sop_docs'"
-          (click)="setScope('sop_docs')"
-        >
-          Quy trình SOP
-        </button>
-        <button
-          type="button"
-          class="btn btn-sm rounded-pill py-0 px-2"
-          style="font-size: 0.72rem;"
-          [class.btn-primary]="ragService.config().knowledgeScope === 'sales_reports'"
-          [class.btn-outline-secondary]="ragService.config().knowledgeScope !== 'sales_reports'"
-          (click)="setScope('sales_reports')"
-        >
-          Doanh thu
-        </button>
-      </div>
-    </div>
-
-    <!-- Widget Messages Body -->
-    <div class="rag-widget-body" #widgetScroll>
-      <!-- Suggested Quick Prompts -->
-      <div class="mb-2">
-        <div class="text-secondary mb-1" style="font-size: 0.72rem;">
-          <i class="bi bi-lightning-charge text-primary me-1"></i>Câu hỏi nghiệp vụ gợi ý:
-        </div>
-        <div class="d-flex flex-wrap gap-1">
-          @for (sp of ragService.suggestedPrompts; track sp.id) {
-          <button
-            type="button"
-            class="btn btn-sm btn-light border text-start py-1 px-2"
-            style="font-size: 0.74rem;"
-            (click)="usePrompt(sp)"
-          >
-            <i class="bi {{ sp.icon }} text-primary me-1"></i>{{ sp.label }}
-          </button>
-          }
-        </div>
-      </div>
-
-      <!-- Messages -->
-      @for (msg of ragService.activeConversation().messages; track msg.id) {
-      <div class="rag-msg-row" [class.rag-msg-user]="msg.role === 'user'" [class.rag-msg-assistant]="msg.role === 'assistant'">
-        <div class="rag-msg-body" style="max-width: 92%;">
-          <div class="rag-bubble small" [class.user-bubble]="msg.role === 'user'" [class.ai-bubble]="msg.role === 'assistant'">
-            <div class="rag-text-content" [innerHTML]="formatMessageHtml(msg.content)"></div>
-          </div>
-
-          <!-- Compact Citations inside Widget -->
-          @if (msg.citations && msg.citations.length > 0) {
-          <div class="mt-1">
-            <div class="d-flex flex-wrap gap-1">
-              @for (cit of msg.citations; track cit.id; let i = $index) {
-              <button
-                type="button"
-                class="btn btn-sm btn-light border py-0 px-2 d-inline-flex align-items-center gap-1"
-                style="font-size: 0.7rem;"
-                [class.border-primary]="expandedCitationId() === cit.id"
-                (click)="toggleCitationPreview(cit)"
-              >
-                <i class="bi bi-journal-bookmark text-primary"></i>
-                <span class="text-truncate" style="max-width: 140px;">{{ cit.sourceTitle }}</span>
-                <span class="badge text-bg-success">{{ formatScore(cit.similarityScore) }}%</span>
-              </button>
-              }
+@if (!hidden()) {
+  <div class="rag-widget-wrapper">
+    @if (chat.widgetOpen()) {
+      <section #panel id="rag-widget-panel" class="rag-widget-panel shadow-lg" role="dialog" aria-modal="false"
+               aria-labelledby="rag-widget-title" (keydown)="trapFocus($event)">
+        <header class="rag-widget-header">
+          <div class="d-flex align-items-center gap-2 min-w-0">
+            <div class="rag-widget-avatar" aria-hidden="true"><i class="bi bi-robot"></i></div>
+            <div class="min-w-0">
+              <h2 id="rag-widget-title" class="rag-widget-title">Trợ lý nội bộ</h2>
+              <div class="rag-widget-subtitle">Trả lời theo tài liệu và quyền của bạn</div>
             </div>
-
-            <!-- Inline Citation Snippet Preview when clicked -->
-            @for (cit of msg.citations; track cit.id) {
-              @if (expandedCitationId() === cit.id) {
-              <div class="rag-widget-cit-preview mt-1 p-2 rounded border bg-white">
-                <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 0.72rem;">
-                  <strong class="text-primary text-truncate">{{ cit.chunkIndex }}</strong>
-                  <button
-                    type="button"
-                    class="btn btn-link btn-sm p-0 text-decoration-none"
-                    style="font-size: 0.72rem;"
-                    (click)="openFullPage()"
-                  >
-                    Mở chi tiết <i class="bi bi-box-arrow-up-right"></i>
-                  </button>
-                </div>
-                <div class="text-secondary" style="font-size: 0.74rem;">
-                  "{{ cit.snippet }}"
-                </div>
-              </div>
-              }
-            }
           </div>
-          }
-        </div>
-      </div>
-      }
-
-      @if (ragService.isRetrieving()) {
-      <div class="d-flex align-items-center gap-2 p-2 rounded bg-white border small">
-        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-        <span class="text-secondary" style="font-size: 0.76rem;">
-          {{ ragService.retrievalStage() }}
-        </span>
-      </div>
-      }
-    </div>
-
-    <!-- Widget Input Footer -->
-    <div class="p-2 bg-white border-top">
-      <div class="input-group input-group-sm">
-        <input
-          type="text"
-          class="form-control"
-          placeholder="Hỏi về tồn kho, quy trình đổi trả..."
-          [ngModel]="widgetInput()"
-          (ngModelChange)="widgetInput.set($event)"
-          (keydown)="onKeyDown($event)"
-        />
-        <button
-          type="button"
-          class="btn btn-primary px-3"
-          [disabled]="!widgetInput().trim() || ragService.isRetrieving()"
-          (click)="onSend()"
-        >
-          <i class="bi bi-send-fill"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-  }
-
-  <!-- Floating Launcher Button -->
-  <button
-    type="button"
-    class="rag-widget-fab shadow"
-    (click)="toggleWidget()"
-    aria-label="Mở Trợ lý AI Siêu thị (RAG)"
-  >
-    @if (ragService.widgetOpen()) {
-      <i class="bi bi-chevron-down fs-4"></i>
-    } @else {
-      <i class="bi bi-robot fs-4"></i>
-      <span class="rag-fab-badge">RAG</span>
+          <div class="d-flex align-items-center gap-1">
+            <button type="button" class="rag-widget-icon-btn" (click)="chat.newConversation()" aria-label="Cuộc trò chuyện mới"
+                    title="Cuộc trò chuyện mới">
+              <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="rag-widget-icon-btn" (click)="openFullPage()" aria-label="Mở trang trợ lý đầy đủ"
+                    title="Mở trang đầy đủ">
+              <i class="bi bi-arrows-angle-expand" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="rag-widget-icon-btn" (click)="close()" aria-label="Thu gọn trợ lý" title="Thu gọn">
+              <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+          </div>
+        </header>
+        <app-chatbot-thread class="rag-widget-thread" [compact]="true" />
+      </section>
     }
-  </button>
-</div>
+
+    <button #launcher type="button" class="rag-widget-fab shadow" (click)="toggle()"
+            [attr.aria-expanded]="chat.widgetOpen()" aria-controls="rag-widget-panel"
+            [attr.aria-label]="chat.widgetOpen() ? 'Thu gọn trợ lý nội bộ' : 'Mở trợ lý nội bộ'">
+      <i class="bi fs-4" [class.bi-chevron-down]="chat.widgetOpen()" [class.bi-chat-dots-fill]="!chat.widgetOpen()"
+         aria-hidden="true"></i>
+    </button>
+  </div>
 }

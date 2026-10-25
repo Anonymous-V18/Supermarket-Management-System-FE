@@ -1,123 +1,92 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
-  ViewChild,
   computed,
+  effect,
   inject,
   signal,
-  ChangeDetectionStrategy,
+  viewChild,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  KnowledgeScope,
-  RagChatbotService,
-  RagCitation,
-  SuggestedPrompt,
-} from '../../services/rag-chatbot.service';
+import { RagChatbotService } from '../../services/rag-chatbot.service';
+import { ChatbotThreadComponent } from '../chatbot-thread/chatbot-thread.component';
 
+// Floating assistant available on every screen (hidden on the full chatbot page)
 @Component({
   selector: 'app-chatbot-widget',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [ChatbotThreadComponent],
   templateUrl: './chatbot-widget.component.html',
   styleUrl: './chatbot-widget.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(document:keydown.escape)': 'onEscape()' },
 })
 export class ChatbotWidgetComponent {
-  readonly ragService = inject(RagChatbotService);
+  readonly chat = inject(RagChatbotService);
   private readonly router = inject(Router);
 
-  @ViewChild('widgetScroll')
-  private widgetScroll?: ElementRef<HTMLDivElement>;
+  private readonly launcher = viewChild<ElementRef<HTMLButtonElement>>('launcher');
+  private readonly panel = viewChild<ElementRef<HTMLElement>>('panel');
+  private readonly thread = viewChild(ChatbotThreadComponent);
 
-  readonly currentUrl = signal<string>(this.router.url);
-  readonly widgetInput = signal<string>('');
-  readonly expandedCitationId = signal<string | null>(null);
-
-  // Hide the floating widget when already on the dedicated /home/chatbot page
-  readonly isOnDedicatedChatbotPage = computed(() =>
-    this.currentUrl().includes('/home/chatbot')
-  );
+  readonly currentUrl = signal(this.router.url);
+  readonly hidden = computed(() => this.currentUrl().startsWith('/home/chatbot'));
 
   constructor() {
     this.router.events
-      .pipe(
-        filter((e): e is NavigationEnd => e instanceof NavigationEnd),
-        takeUntilDestroyed()
-      )
-      .subscribe((e) => {
-        this.currentUrl.set(e.urlAfterRedirects);
-      });
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd), takeUntilDestroyed())
+      .subscribe((event) => this.currentUrl.set(event.urlAfterRedirects));
+    // Focus the question box when the panel opens
+    effect(() => {
+      if (this.chat.widgetOpen()) {
+        setTimeout(() => this.thread()?.focus());
+      }
+    });
   }
 
-  toggleWidget(): void {
-    this.ragService.toggleWidget();
-    if (this.ragService.widgetOpen()) {
-      this.scrollToBottomSoon();
+  toggle(): void {
+    this.chat.toggleWidget();
+  }
+
+  close(): void {
+    this.chat.closeWidget();
+    // After the panel is gone: on phones the launcher is hidden while the panel is open
+    setTimeout(() => this.launcher()?.nativeElement.focus());
+  }
+
+  onEscape(): void {
+    if (this.chat.widgetOpen() && !this.hidden()) {
+      this.close();
     }
   }
 
   openFullPage(): void {
-    this.ragService.closeWidget();
+    this.chat.closeWidget();
     this.router.navigate(['/home/chatbot']);
   }
 
-  onSend(): void {
-    const text = this.widgetInput().trim();
-    if (!text || this.ragService.isRetrieving()) return;
-    this.widgetInput.set('');
-    this.ragService.sendMessage(text);
-    this.scrollToBottomSoon();
-  }
-
-  onKeyDown(event: KeyboardEvent): void {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      this.onSend();
+  // Keeps Tab inside the open panel
+  trapFocus(event: KeyboardEvent): void {
+    const panel = this.panel()?.nativeElement;
+    if (event.key !== 'Tab' || !panel) {
+      return;
     }
-  }
-
-  usePrompt(sp: SuggestedPrompt): void {
-    this.ragService.updateConfig({ knowledgeScope: sp.scope });
-    this.ragService.sendMessage(sp.prompt);
-    this.scrollToBottomSoon();
-  }
-
-  setScope(scope: KnowledgeScope): void {
-    this.ragService.updateConfig({ knowledgeScope: scope });
-  }
-
-  toggleCitationPreview(cit: RagCitation): void {
-    this.ragService.selectedCitation.set(cit);
-    this.expandedCitationId.update((curr) => (curr === cit.id ? null : cit.id));
-  }
-
-  formatScore(score: number): number {
-    return Math.round(score * 100);
-  }
-
-  formatMessageHtml(raw: string): string {
-    if (!raw) return '';
-    const escaped = raw
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-    return escaped
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*([^*\n]+)\*/g, '<em>$1</em>')
-      .replace(/`([^`\n]+)`/g, '<code class="rag-inline-code">$1</code>');
-  }
-
-  private scrollToBottomSoon(): void {
-    setTimeout(() => {
-      const el = this.widgetScroll?.nativeElement;
-      if (el) {
-        el.scrollTop = el.scrollHeight;
-      }
-    }, 60);
+    const focusable = Array.from(panel.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), a[href], textarea:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'));
+    if (!focusable.length) {
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   }
 }

@@ -1,0 +1,151 @@
+<div class="row g-3">
+  <div class="col-12 col-xl-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h6 fw-bold mb-3"><i class="bi bi-cloud-arrow-up me-1" aria-hidden="true"></i>Thêm tài liệu</h2>
+        <form #uploadForm (submit)="$event.preventDefault(); upload(uploadForm)">
+          <div class="mb-2">
+            <label class="form-label small fw-semibold" for="kb-file">Tệp (.md, .txt, .pdf, .html; tối đa 10MB)</label>
+            <input id="kb-file" type="file" class="form-control form-control-sm" [accept]="acceptedFiles" (change)="onFileChosen($event)" />
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold" for="kb-title">Tên tài liệu</label>
+            <input id="kb-title" type="text" class="form-control form-control-sm" maxlength="255" [value]="uploadTitle()"
+                   (input)="uploadTitle.set($any($event.target).value)" placeholder="Mặc định: tên tệp" />
+          </div>
+          <fieldset class="mb-3">
+            <legend class="form-label small fw-semibold mb-1">Vai trò được xem</legend>
+            <div class="d-flex flex-wrap gap-2">
+              @for (role of roles(); track role.code) {
+                <label class="form-check form-check-inline small mb-0">
+                  <input class="form-check-input" type="checkbox" [checked]="uploadRoles().includes(role.code)"
+                         (change)="toggleRole('upload', role.code)" />
+                  <span class="form-check-label">{{ role.name }}</span>
+                </label>
+              }
+            </div>
+            @if (!uploadRoles().length) {
+              <div class="text-danger small mt-1">Chọn ít nhất một vai trò</div>
+            }
+          </fieldset>
+          <button type="submit" class="btn btn-primary btn-sm w-100" [disabled]="!uploadFile() || !uploadRoles().length || uploading()">
+            @if (uploading()) {
+              <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Đang xử lý…
+            } @else {
+              <i class="bi bi-upload me-1" aria-hidden="true"></i>Tải lên và index
+            }
+          </button>
+          <p class="small text-secondary mt-2 mb-0">
+            Hệ thống chỉ lưu nội dung chữ (không lưu tệp gốc), tự chia đoạn theo tiêu đề và chỉ trả lời người có vai trò đã chọn.
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-8">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+          <h2 class="h6 fw-bold mb-0">
+            Tài liệu ({{ documents().length }}) · {{ totalChunks() }} đoạn
+            @if (failedCount()) {
+              <span class="badge text-bg-danger ms-1">{{ failedCount() }} lỗi index</span>
+            }
+          </h2>
+          <div class="d-flex gap-2">
+            <input type="search" class="form-control form-control-sm" placeholder="Tìm tài liệu…" aria-label="Tìm tài liệu"
+                   [value]="search()" (input)="search.set($any($event.target).value)" />
+            <button type="button" class="btn btn-outline-secondary btn-sm text-nowrap" (click)="reindexAll()" [disabled]="busyId() !== null">
+              <i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>Index lại tất cả
+            </button>
+          </div>
+        </div>
+
+        @if (loading()) {
+          <div class="text-center py-4"><span class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải…</span></span></div>
+        } @else {
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr><th>Tài liệu</th><th>Vai trò được xem</th><th class="text-center">Đoạn</th><th>Trạng thái</th><th class="text-end">Thao tác</th></tr>
+              </thead>
+              <tbody>
+                @for (doc of filtered(); track doc.id) {
+                  <tr>
+                    <td>
+                      <div class="fw-semibold small">{{ doc.title }}</div>
+                      <div class="text-secondary" style="font-size: 0.75rem">{{ doc.sourceType }} · {{ doc.createdDate | date: 'dd/MM/yyyy' }}</div>
+                    </td>
+                    <td>
+                      <div class="d-flex flex-wrap gap-1">
+                        @for (code of doc.roleCodes; track code) {
+                          <span class="badge rounded-pill text-bg-light border">{{ roleName(code) }}</span>
+                        }
+                      </div>
+                    </td>
+                    <td class="text-center small">{{ doc.chunkCount }}</td>
+                    <td>
+                      @switch (doc.indexStatus) {
+                        @case ('INDEXED') { <span class="badge text-bg-success">Đã index</span> }
+                        @case ('PENDING') { <span class="badge text-bg-secondary">Đang chờ</span> }
+                        @case ('FAILED') { <span class="badge text-bg-danger" [title]="doc.indexError ?? ''">Lỗi</span> }
+                      }
+                      @if (doc.indexError && doc.indexStatus !== 'FAILED') {
+                        <i class="bi bi-info-circle text-warning ms-1" [title]="doc.indexError"></i>
+                      }
+                    </td>
+                    <td class="text-end text-nowrap">
+                      <button type="button" class="btn btn-sm btn-link p-1" (click)="startEdit(doc)" [disabled]="busyId() !== null"
+                              [attr.aria-label]="'Sửa ' + doc.title" title="Sửa tên / vai trò"><i class="bi bi-pencil"></i></button>
+                      <label class="btn btn-sm btn-link p-1 mb-0" [class.disabled]="busyId() !== null" title="Thay nội dung bằng tệp mới">
+                        <i class="bi bi-file-earmark-arrow-up"></i><span class="visually-hidden">Thay nội dung {{ doc.title }}</span>
+                        <input type="file" class="d-none" [accept]="acceptedFiles" (change)="replaceContent(doc, $event)" />
+                      </label>
+                      <button type="button" class="btn btn-sm btn-link p-1" (click)="reindex(doc)" [disabled]="busyId() !== null"
+                              [attr.aria-label]="'Index lại ' + doc.title" title="Index lại"><i class="bi bi-arrow-repeat"></i></button>
+                      <button type="button" class="btn btn-sm btn-link text-danger p-1" (click)="remove(doc)" [disabled]="busyId() !== null"
+                              [attr.aria-label]="'Xóa ' + doc.title" title="Xóa"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                  @if (editing()?.id === doc.id) {
+                    <tr class="table-light">
+                      <td colspan="5">
+                        <div class="row g-2 align-items-end">
+                          <div class="col-12 col-md-5">
+                            <label class="form-label small fw-semibold mb-1" [for]="'kb-edit-' + doc.id">Tên tài liệu</label>
+                            <input [id]="'kb-edit-' + doc.id" type="text" class="form-control form-control-sm" maxlength="255"
+                                   [value]="editTitle()" (input)="editTitle.set($any($event.target).value)" />
+                          </div>
+                          <div class="col-12 col-md-7">
+                            <div class="small fw-semibold mb-1">Vai trò được xem</div>
+                            <div class="d-flex flex-wrap gap-2">
+                              @for (role of roles(); track role.code) {
+                                <label class="form-check form-check-inline small mb-0">
+                                  <input class="form-check-input" type="checkbox" [checked]="editRoles().includes(role.code)"
+                                         (change)="toggleRole('edit', role.code)" />
+                                  <span class="form-check-label">{{ role.name }}</span>
+                                </label>
+                              }
+                            </div>
+                          </div>
+                          <div class="col-12 d-flex gap-2 justify-content-end">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="editing.set(null)">Hủy</button>
+                            <button type="button" class="btn btn-sm btn-primary" (click)="saveEdit()"
+                                    [disabled]="!editTitle().trim() || !editRoles().length || busyId() !== null">Lưu</button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                } @empty {
+                  <tr><td colspan="5" class="text-center text-secondary small py-3">Chưa có tài liệu nào</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

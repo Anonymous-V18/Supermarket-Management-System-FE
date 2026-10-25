@@ -1,16 +1,17 @@
+/* Below Bootstrap's offcanvas (1045), modals (1055) and toasts (1090) */
 .rag-widget-wrapper {
   position: fixed;
-  right: 1.5rem;
-  bottom: 1.5rem;
-  z-index: 1055;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 1035;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 0.75rem;
 }
 .rag-widget-fab {
-  width: 56px;
-  height: 56px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
   border: none;
   background: linear-gradient(135deg, #3659cd, #28256d);
@@ -18,30 +19,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.15s;
 }
 .rag-widget-fab:hover {
-  transform: scale(1.06);
+  transform: scale(1.05);
 }
-.rag-fab-badge {
-  position: absolute;
-  top: -4px;
-  right: -6px;
-  background: #198754;
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 0.15rem 0.4rem;
-  border-radius: 10px;
-  border: 2px solid #fff;
+.rag-widget-fab:focus-visible {
+  outline: 3px solid #9fb4f5;
+  outline-offset: 2px;
 }
 .rag-widget-panel {
-  width: 385px;
+  width: 400px;
   max-width: calc(100vw - 2rem);
-  height: 530px;
-  max-height: calc(100vh - 110px);
+  height: 580px;
+  max-height: calc(100dvh - 100px);
   background: #fff;
   border: 1px solid #dce2f0;
   border-radius: 16px;
@@ -49,47 +40,25 @@
   flex-direction: column;
   overflow: hidden;
 }
-.rag-widget-header {
-  background: linear-gradient(135deg, #3659cd, #28256d);
-  color: #fff;
-}
-.rag-widget-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.18);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-}
-.rag-widget-subtitle {
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.85);
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-.rag-live-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #2ecc71;
-}
-.rag-widget-icon-btn {
-  color: rgba(255, 255, 255, 0.9);
-  padding: 0.25rem 0.45rem;
-}
-.rag-widget-icon-btn:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.15);
-}
-.rag-widget-body {
+.rag-widget-thread {
   flex: 1;
-  overflow-y: auto;
-  padding: 0.75rem;
-  background: #f8f9fc;
+  min-height: 0;
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+}
+/* Phones: the panel takes the whole screen; the launcher is hidden behind it */
+@media (max-width: 575.98px) {
+  .rag-widget-wrapper:has(.rag-widget-panel) {
+    inset: 0;
+  }
+  .rag-widget-panel {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    border: none;
+  }
+  .rag-widget-wrapper:has(.rag-widget-panel) .rag-widget-fab {
+    display: none;
+  }
 }

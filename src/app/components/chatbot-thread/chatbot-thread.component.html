@@ -1,0 +1,151 @@
+<div class="rag-thread" [class.rag-thread-compact]="compact()">
+  <div class="rag-thread-scroll" #scroller (scroll)="onScroll()" role="log" aria-live="polite" aria-relevant="additions text"
+       aria-label="Nội dung trò chuyện">
+    @if (chat.loadError()) {
+      <div class="alert alert-warning small mb-0" role="alert">
+        <i class="bi bi-exclamation-triangle me-1"></i>{{ chat.loadError() }}
+      </div>
+    }
+
+    @if (messages().length === 0) {
+      <div class="rag-welcome">
+        <div class="rag-empty-icon mb-2" aria-hidden="true"><i class="bi bi-chat-square-text"></i></div>
+        <div class="fw-semibold">Xin chào! Bạn cần hỗ trợ gì?</div>
+        <p class="text-secondary small mb-3">
+          Hỏi quy trình, quy định trong tài liệu nội bộ hoặc tra số liệu trong phạm vi quyền của bạn.
+        </p>
+        @if (suggestions().length) {
+          <div class="rag-suggestions">
+            @for (suggestion of suggestions(); track suggestion) {
+              <button type="button" class="rag-suggestion" (click)="send(suggestion)" [disabled]="pending()">
+                <i class="bi bi-lightning-charge" aria-hidden="true"></i>{{ suggestion }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    @for (message of messages(); track message.id) {
+      <div class="rag-msg-row" [class.rag-msg-user]="message.role === 'user'">
+        @if (!compact()) {
+          <div class="rag-avatar" [class.ai-avatar]="message.role === 'assistant'" [class.user-avatar]="message.role === 'user'"
+               aria-hidden="true">
+            <i class="bi" [class.bi-robot]="message.role === 'assistant'" [class.bi-person]="message.role === 'user'"></i>
+          </div>
+        }
+        <div class="rag-msg-body">
+          @if (message.role === 'user') {
+            <div class="rag-bubble user-bubble"><div class="rag-user-text">{{ message.content }}</div></div>
+          } @else {
+            <div class="rag-bubble ai-bubble">
+              @if (message.content) {
+                <div class="rag-md" [innerHTML]="message.content | chatMarkdown"></div>
+              } @else if (message.streaming) {
+                <div class="rag-typing" role="status"><span></span><span></span><span></span>
+                  <span class="visually-hidden">Đang trả lời…</span></div>
+              }
+              @if (message.error) {
+                <div class="rag-msg-error" role="alert">
+                  <i class="bi bi-exclamation-circle me-1" aria-hidden="true"></i>{{ message.error }}
+                  @if (message.question) {
+                    <button type="button" class="btn btn-link btn-sm p-0 ms-1 align-baseline" (click)="chat.retry(message)"
+                            [disabled]="pending()">Thử lại</button>
+                  }
+                </div>
+              }
+            </div>
+
+            @if (message.link && !message.streaming) {
+              <a class="btn btn-sm btn-outline-primary rag-action" [routerLink]="message.link" title="Chuyển đến màn hình quản lý chi tiết">
+                {{ cleanLinkLabel(message.linkLabel) }}
+              </a>
+            }
+
+            @if (message.suggestions.length && !message.streaming) {
+              <div class="rag-suggestions mt-2">
+                @for (suggestion of message.suggestions; track suggestion) {
+                  <button type="button" class="rag-suggestion" (click)="send(suggestion)" [disabled]="pending()">{{ suggestion }}</button>
+                }
+              </div>
+            }
+
+            @if (message.citations.length) {
+              <div class="rag-sources">
+                <span class="rag-sources-label">Nguồn:</span>
+                @for (citation of message.citations; track citation.chunkId) {
+                  <button type="button" class="rag-source-chip" [class.active]="isExpanded(message, citation.chunkId)"
+                          [attr.aria-expanded]="isExpanded(message, citation.chunkId)" (click)="toggleCitation(message, citation.chunkId)"
+                          [title]="citation.headingPath || citation.documentTitle">
+                    <span class="rag-source-index">{{ citation.index }}</span>
+                    <span class="text-truncate">{{ citation.headingPath || citation.documentTitle }}</span>
+                  </button>
+                }
+              </div>
+              @for (citation of message.citations; track citation.chunkId) {
+                @if (isExpanded(message, citation.chunkId)) {
+                  <div class="rag-chunk-snippet mt-1">
+                    <div class="fw-semibold small mb-1">[{{ citation.index }}] {{ citation.documentTitle }}</div>
+                    {{ citation.snippet }}
+                  </div>
+                }
+              }
+            }
+
+            @if (isSaved(message) && !message.streaming && message.content) {
+              <div class="rag-msg-tools">
+                <button type="button" class="rag-tool-btn" (click)="copy(message)" [attr.aria-label]="'Sao chép câu trả lời'">
+                  <i class="bi" [class.bi-clipboard]="copiedId() !== message.id" [class.bi-check2]="copiedId() === message.id"
+                     aria-hidden="true"></i>
+                </button>
+                <button type="button" class="rag-tool-btn" [class.active]="message.feedback === 1" (click)="feedback(message, 1)"
+                        aria-label="Câu trả lời hữu ích" [attr.aria-pressed]="message.feedback === 1">
+                  <i class="bi bi-hand-thumbs-up" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="rag-tool-btn" [class.active]="message.feedback === -1" (click)="feedback(message, -1)"
+                        aria-label="Câu trả lời chưa đúng" [attr.aria-pressed]="message.feedback === -1">
+                  <i class="bi bi-hand-thumbs-down" aria-hidden="true"></i>
+                </button>
+                @if (message.latencyMs !== undefined && !compact()) {
+                  <span class="rag-latency">{{ message.latencyMs }} ms</span>
+                }
+              </div>
+            }
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (!stickToBottom() && messages().length) {
+    <button type="button" class="rag-jump-latest" (click)="scrollToLatest()">
+      <i class="bi bi-arrow-down" aria-hidden="true"></i> Tin mới nhất
+    </button>
+  }
+
+  <div class="rag-composer">
+    <div class="rag-scope-bar" role="radiogroup" aria-label="Phạm vi câu hỏi">
+      @for (scope of scopes(); track scope.value) {
+        <button type="button" class="rag-scope-pill" role="radio" [class.active]="chat.scope() === scope.value"
+                [attr.aria-checked]="chat.scope() === scope.value" (click)="setScope(scope.value)">{{ scope.label }}</button>
+      }
+    </div>
+    <div class="rag-composer-box">
+      <textarea #composer class="rag-composer-input" rows="1" [maxLength]="maxLength"
+                placeholder="Nhập câu hỏi…" title="Enter để gửi, Shift+Enter để xuống dòng"
+                aria-label="Câu hỏi (Enter để gửi, Shift+Enter để xuống dòng)" [value]="draft()" (input)="onInput($event)" (keydown)="onKeyDown($event)"></textarea>
+      @if (pending()) {
+        <button type="button" class="btn btn-outline-danger rag-send-btn" (click)="chat.stop()" aria-label="Dừng trả lời">
+          <i class="bi bi-stop-fill" aria-hidden="true"></i>
+        </button>
+      } @else {
+        <button type="button" class="btn btn-primary rag-send-btn" [disabled]="!canSend()" (click)="send()" aria-label="Gửi câu hỏi">
+          <i class="bi bi-send-fill" aria-hidden="true"></i>
+        </button>
+      }
+    </div>
+    @if (draft().length > maxLength - 100) {
+      <div class="rag-counter" aria-live="polite">{{ draft().length }}/{{ maxLength }}</div>
+    }
+  </div>
+</div>

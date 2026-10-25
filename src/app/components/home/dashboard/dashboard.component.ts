@@ -124,8 +124,8 @@ const QUICK_ACTIONS: QuickAction[] = [
     roles: ['ADMIN'],
   },
   {
-    label: 'Trợ lý AI (RAG)',
-    hint: 'Tra cứu tồn kho & quy trình',
+    label: 'Trợ lý nội bộ',
+    hint: 'Hỏi quy trình & tra số liệu',
     icon: 'bi-robot',
     link: ['/home/chatbot'],
     roles: [],

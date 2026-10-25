@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { LayoutService } from '../../services/layout.service';
 import { LogoutService } from '../../services/logout.service';
+import { RagChatbotService } from '../../services/rag-chatbot.service';
 import { TokenService } from '../../services/token.service';
 import { LocalStorageService } from './../../services/local-storage.service';
 
@@ -16,6 +17,7 @@ import { LocalStorageService } from './../../services/local-storage.service';
 export class HeaderComponent implements OnInit {
   private logoutService = inject(LogoutService);
   private tokenService = inject(TokenService);
+  private chatbotService = inject(RagChatbotService);
   private localStorageService = inject(LocalStorageService);
   private router = inject(Router);
   private toastrService = inject(ToastrService);
@@ -38,6 +40,8 @@ export class HeaderComponent implements OnInit {
       next: () => {},
       complete: () => {
         this.tokenService.clearToken();
+        // Chat history in memory belongs to the user who is leaving
+        this.chatbotService.reset();
         this.router.navigate(['']);
         this.toastrService.success(
           'Đăng xuất thành công !',
