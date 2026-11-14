@@ -24,6 +24,10 @@ export class ChatbotComponent {
   readonly historyOpen = signal(false);
   readonly search = signal('');
 
+  // Confirmation modal state for deleting a conversation
+  readonly conversationToDelete = signal<ChatConversationDTOResponse | null>(null);
+  readonly deletingConversation = signal(false);
+
   readonly filteredConversations = computed(() => {
     const query = this.search().trim().toLowerCase();
     const list = this.chat.conversations();
@@ -45,13 +49,35 @@ export class ChatbotComponent {
     this.historyOpen.set(false);
   }
 
-  remove(conversation: ChatConversationDTOResponse, event: Event): void {
+  promptDelete(conversation: ChatConversationDTOResponse, event: Event): void {
     event.stopPropagation();
-    if (!confirm(`Xóa cuộc trò chuyện "${conversation.title}"?`)) {
-      return;
-    }
+    this.conversationToDelete.set(conversation);
+  }
+
+  cancelDelete(): void {
+    if (this.deletingConversation()) return;
+    this.conversationToDelete.set(null);
+  }
+
+  confirmDelete(): void {
+    const conversation = this.conversationToDelete();
+    if (!conversation || this.deletingConversation()) return;
+
+    this.deletingConversation.set(true);
     this.chat.deleteConversation(conversation.id)
-      .then(() => this.toastrService.success('Đã xóa cuộc trò chuyện', 'Thành công !', this.toastrConfig))
-      .catch((error) => this.toastrService.error(error?.error?.message ?? 'Có lỗi xảy ra', 'Lỗi !', this.toastrConfig));
+      .then(() => {
+        this.toastrService.success('Đã xóa cuộc trò chuyện', 'Thành công !', this.toastrConfig);
+        this.conversationToDelete.set(null);
+      })
+      .catch((error) => {
+        this.toastrService.error(error?.error?.message ?? 'Có lỗi xảy ra', 'Lỗi !', this.toastrConfig);
+      })
+      .finally(() => {
+        this.deletingConversation.set(false);
+      });
+  }
+
+  remove(conversation: ChatConversationDTOResponse, event: Event): void {
+    this.promptDelete(conversation, event);
   }
 }

@@ -133,7 +133,7 @@
     <div class="d-flex gap-2 justify-content-end form-group">
       <a [routerLink]="['/home/stock-transfer']" class="btn btn-outline-secondary">Quay lại</a>
       @if (!stockTransfer || stockTransfer.statusInvoice.code !== 'CANCELLED') {
-      <button type="submit" class="btn btn-success" [disabled]="!form.valid">Xác nhận và lưu</button>
+      <button type="submit" class="btn btn-success" >Xác nhận và lưu</button>
       }
     </div>
   </div>

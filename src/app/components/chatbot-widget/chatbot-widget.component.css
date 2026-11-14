@@ -44,6 +44,10 @@
   flex: 1;
   min-height: 0;
   display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 /* Phones: the panel takes the whole screen; the launcher is hidden behind it */
 @media (max-width: 575.98px) {

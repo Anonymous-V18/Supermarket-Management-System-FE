@@ -128,6 +128,15 @@ export class StockTakeFormComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      if (!this.form.value.warehouseId) {
+        this.toastrService.error('Vui lòng chọn kho kiểm kê (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      } else {
+        this.toastrService.error('Vui lòng nhập đầy đủ các trường bắt buộc (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      }
+      return;
+    }
     if (!this.lines().length) {
       this.toastrService.warning('Phiếu kiểm kê phải có ít nhất một sản phẩm', 'Cảnh báo !', this.toastrConfig);
       return;

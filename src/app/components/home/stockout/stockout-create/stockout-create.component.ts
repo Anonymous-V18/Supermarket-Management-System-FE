@@ -72,6 +72,19 @@ export class StockoutCreateComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.stockOutCreateForm.invalid) {
+      this.stockOutCreateForm.markAllAsTouched();
+      if (!this.stockOutCreateForm.value.warehouseId) {
+        this.toastrService.error('Vui lòng chọn kho xuất hàng (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      } else if (!this.stockOutCreateForm.value.reason) {
+        this.toastrService.error('Vui lòng nhập lý do xuất kho (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      } else if (this.stockOutDetails().length === 0) {
+        this.toastrService.error('Vui lòng thêm ít nhất một sản phẩm vào phiếu xuất (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      } else {
+        this.toastrService.error('Vui lòng nhập đầy đủ các trường bắt buộc (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      }
+      return;
+    }
     this.stockoutService.insert(this.mappingDataToDTORequest()).subscribe({
       next: (response: ApiResponse<unknown>) => {
         this.toastrService.success(

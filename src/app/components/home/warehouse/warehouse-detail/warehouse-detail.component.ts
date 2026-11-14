@@ -72,7 +72,15 @@ export class WarehouseDetailComponent implements OnInit {
   }
 
   onSubmit() {
-    console.log(this.warehouseUpdateForm.value);
+    if (this.warehouseUpdateForm.invalid) {
+      this.warehouseUpdateForm.markAllAsTouched();
+      this.toastrService.error(
+        'Vui lòng nhập đầy đủ các trường bắt buộc (*)',
+        'Lỗi nhập liệu !',
+        this.toastrConfig
+      );
+      return;
+    }
     this.warehouseService
       .update(this.warehouseId, this.mappingDataToDTORequest())
       .subscribe({

@@ -59,6 +59,15 @@ export class WarehouseCreateComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.warehouseCreateForm.invalid) {
+      this.warehouseCreateForm.markAllAsTouched();
+      this.toastrService.error(
+        'Vui lòng nhập đầy đủ các trường bắt buộc (*)',
+        'Lỗi nhập liệu !',
+        this.toastrConfig
+      );
+      return;
+    }
     this.warehouseService.insert(this.mappingDataToDTORequest()).subscribe({
       next: (response: ApiResponse<void>) => {
         this.toastrService.success(

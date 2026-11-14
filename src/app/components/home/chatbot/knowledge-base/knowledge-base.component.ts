@@ -32,6 +32,10 @@ export class KnowledgeBaseComponent {
   readonly busyId = signal<string | null>(null);
   readonly search = signal('');
 
+  // Confirmation modal state for deleting a document
+  readonly docToDelete = signal<KbDocumentDTOResponse | null>(null);
+  readonly deletingDoc = signal(false);
+
   // Upload form
   readonly uploadFile = signal<File | null>(null);
   readonly uploadTitle = signal('');
@@ -86,6 +90,11 @@ export class KnowledgeBaseComponent {
   upload(form: HTMLFormElement): void {
     const file = this.uploadFile();
     if (!file || !this.uploadRoles().length) {
+      if (!file) {
+        this.toastrService.error('Vui lòng chọn tài liệu (*)!', 'Lỗi nhập liệu !', this.toastrConfig);
+      } else {
+        this.toastrService.error('Vui lòng chọn ít nhất một vai trò (*)!', 'Lỗi nhập liệu !', this.toastrConfig);
+      }
       return;
     }
     this.uploading.set(true);
@@ -134,19 +143,41 @@ export class KnowledgeBaseComponent {
     this.run(doc, this.knowledgeBaseService.reindex(doc.id), 'Đã index lại tài liệu');
   }
 
-  remove(doc: KbDocumentDTOResponse): void {
-    if (!confirm(`Xóa tài liệu "${doc.title}"? Chatbot sẽ không trả lời theo tài liệu này nữa.`)) {
-      return;
-    }
+  promptDelete(doc: KbDocumentDTOResponse): void {
+    this.docToDelete.set(doc);
+  }
+
+  cancelDelete(): void {
+    if (this.deletingDoc()) return;
+    this.docToDelete.set(null);
+  }
+
+  confirmDelete(): void {
+    const doc = this.docToDelete();
+    if (!doc || this.deletingDoc()) return;
+
+    this.deletingDoc.set(true);
     this.busyId.set(doc.id);
     this.knowledgeBaseService.delete(doc.id).subscribe({
       next: () => {
         this.documents.update((docs) => docs.filter((item) => item.id !== doc.id));
         this.toastrService.success('Đã xóa tài liệu', 'Thành công !', this.toastrConfig);
+        this.docToDelete.set(null);
       },
-      error: (error) => this.showError(error),
-      complete: () => this.busyId.set(null),
+      error: (error) => {
+        this.showError(error);
+        this.deletingDoc.set(false);
+        this.busyId.set(null);
+      },
+      complete: () => {
+        this.deletingDoc.set(false);
+        this.busyId.set(null);
+      },
     });
+  }
+
+  remove(doc: KbDocumentDTOResponse): void {
+    this.promptDelete(doc);
   }
 
   reindexAll(): void {

@@ -113,6 +113,19 @@ export class StockTransferFormComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      if (!this.form.value.fromWarehouseId) {
+        this.toastrService.error('Vui lòng chọn kho chuyển (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      } else if (!this.form.value.toWarehouseId) {
+        this.toastrService.error('Vui lòng chọn kho nhận (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      } else if (this.lines().length === 0) {
+        this.toastrService.error('Vui lòng thêm ít nhất một sản phẩm cần chuyển (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      } else {
+        this.toastrService.error('Vui lòng nhập đầy đủ các trường bắt buộc (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      }
+      return;
+    }
     const value = this.form.getRawValue();
     if (value.fromWarehouseId === value.toWarehouseId) {
       this.toastrService.warning('Kho nhận phải khác kho chuyển', 'Cảnh báo !', this.toastrConfig);

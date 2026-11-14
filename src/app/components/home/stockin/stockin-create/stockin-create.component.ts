@@ -83,6 +83,19 @@ export class StockinCreateComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.stockInCreateForm.invalid) {
+      this.stockInCreateForm.markAllAsTouched();
+      if (!this.stockInCreateForm.value.supplierId) {
+        this.toastrService.error('Vui lòng chọn nhà cung cấp (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      } else if (!this.stockInCreateForm.value.warehouseId) {
+        this.toastrService.error('Vui lòng chọn kho nhận hàng (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      } else if (this.stockInDetails().length === 0) {
+        this.toastrService.error('Vui lòng thêm ít nhất một sản phẩm vào phiếu nhập (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      } else {
+        this.toastrService.error('Vui lòng nhập đầy đủ các trường bắt buộc (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      }
+      return;
+    }
     this.stockinService.insert(this.mappingDataToDTORequest()).subscribe({
       next: (response: ApiResponse<unknown>) => {
         this.toastrService.success(

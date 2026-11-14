@@ -74,6 +74,11 @@ export class AccountInfoComponent {
   }
 
   onSubmit() {
+    if (this.employeeUpdateForm.invalid) {
+      this.employeeUpdateForm.markAllAsTouched();
+      this.toastrService.error('Vui lòng nhập đầy đủ các trường bắt buộc (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      return;
+    }
     this.employeeService
       .updateCurrentEmployee(this.mappingDataToDTORequest())
       .subscribe({

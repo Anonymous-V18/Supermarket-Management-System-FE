@@ -1,80 +1,123 @@
-<div class="card rag-header-card mb-3">
-  <div class="card-body py-2 px-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
-    <div class="d-flex align-items-center gap-2 min-w-0">
-      <div class="rag-brand-icon" aria-hidden="true"><i class="bi bi-robot"></i></div>
-      <div class="min-w-0">
-        <h1 class="h6 fw-bold mb-0">Trợ lý nội bộ</h1>
-        <div class="small text-secondary text-truncate">
-          Trả lời từ tài liệu nghiệp vụ và dữ liệu hệ thống, đúng phạm vi quyền của bạn
-          @if (chat.capabilities(); as capabilities) {
-            · Vai trò: {{ capabilities.roleCodes.join(', ') }}
+<div class="rag-page-container">
+  <div class="card rag-header-card mb-2">
+    <div class="card-body py-2 px-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <div class="d-flex align-items-center gap-2 min-w-0">
+        <div class="rag-brand-icon" aria-hidden="true"><i class="bi bi-robot"></i></div>
+        <div class="min-w-0">
+          <h1 class="h6 fw-bold mb-0">Trợ lý nội bộ</h1>
+          <div class="small text-secondary text-truncate">
+            Trả lời từ tài liệu nghiệp vụ và dữ liệu hệ thống, đúng phạm vi quyền của bạn
+            @if (chat.capabilities(); as capabilities) {
+              · Vai trò: {{ capabilities.roleCodes.join(', ') }}
+            }
+          </div>
+        </div>
+      </div>
+      @if (chat.canManageKnowledge()) {
+        <div class="btn-group rag-tab-switcher" role="tablist" aria-label="Chế độ">
+          <button type="button" class="btn btn-sm" role="tab" [attr.aria-selected]="activeTab() === 'chat'"
+                  [class.btn-primary]="activeTab() === 'chat'" [class.btn-outline-primary]="activeTab() !== 'chat'"
+                  (click)="activeTab.set('chat')">
+            <i class="bi bi-chat-dots me-1" aria-hidden="true"></i>Trò chuyện
+          </button>
+          <button type="button" class="btn btn-sm" role="tab" [attr.aria-selected]="activeTab() === 'knowledge'"
+                  [class.btn-primary]="activeTab() === 'knowledge'" [class.btn-outline-primary]="activeTab() !== 'knowledge'"
+                  (click)="activeTab.set('knowledge')">
+            <i class="bi bi-journal-text me-1" aria-hidden="true"></i>Kho tri thức
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (activeTab() === 'knowledge' && chat.canManageKnowledge()) {
+    <div class="rag-kb-wrapper">
+      <app-knowledge-base />
+    </div>
+  } @else {
+    <div class="rag-workspace">
+      @if (historyOpen()) {
+        <div class="rag-drawer-backdrop d-lg-none" (click)="historyOpen.set(false)" aria-hidden="true"></div>
+      }
+      <aside class="card rag-sidebar-card" [class.drawer-open]="historyOpen()" aria-label="Lịch sử trò chuyện">
+        <div class="p-2 border-bottom d-flex gap-2">
+          <button type="button" class="btn btn-primary btn-sm flex-grow-1" (click)="newConversation()">
+            <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Cuộc trò chuyện mới
+          </button>
+        </div>
+        <div class="p-2 border-bottom">
+          <input type="search" class="form-control form-control-sm" placeholder="Tìm cuộc trò chuyện…" aria-label="Tìm cuộc trò chuyện"
+                 [value]="search()" (input)="search.set($any($event.target).value)" />
+        </div>
+        <div class="rag-conv-list p-2">
+          @for (conversation of filteredConversations(); track conversation.id) {
+            <div class="rag-conv-item" [class.active]="chat.activeConversationId() === conversation.id" role="button" tabindex="0"
+                 (click)="select(conversation)" (keydown.enter)="select(conversation)"
+                 [attr.aria-current]="chat.activeConversationId() === conversation.id ? 'true' : null">
+              <div class="rag-conv-icon" aria-hidden="true"><i class="bi bi-chat-left-text"></i></div>
+              <div class="rag-conv-meta">
+                <div class="rag-conv-title">{{ conversation.title }}</div>
+                <div class="rag-conv-sub">{{ conversation.modifiedDate | date: 'dd/MM/yyyy HH:mm' }}</div>
+              </div>
+              <button type="button" class="btn btn-sm btn-link text-danger rag-conv-delete p-1" (click)="promptDelete(conversation, $event)"
+                      [attr.aria-label]="'Xóa cuộc trò chuyện ' + conversation.title">
+                <i class="bi bi-trash" aria-hidden="true"></i>
+              </button>
+            </div>
+          } @empty {
+            <div class="text-secondary small text-center py-3">Chưa có cuộc trò chuyện nào</div>
           }
+        </div>
+        <div class="small text-secondary p-2 border-top">Lịch sử chỉ bạn xem được và tự xóa sau 90 ngày.</div>
+      </aside>
+
+      <section class="card rag-chat-card" aria-label="Trò chuyện">
+        <div class="d-lg-none p-2 border-bottom">
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="historyOpen.set(true)">
+            <i class="bi bi-clock-history me-1" aria-hidden="true"></i>Lịch sử
+          </button>
+        </div>
+        <app-chatbot-thread class="rag-page-thread" />
+      </section>
+    </div>
+  }
+
+  @if (conversationToDelete(); as conv) {
+    <div class="rag-modal-backdrop" (click)="cancelDelete()" (keydown.escape)="cancelDelete()" tabindex="0" role="dialog" aria-modal="true" aria-labelledby="deleteConvTitle">
+      <div class="rag-modal-dialog" (click)="$event.stopPropagation()">
+        <div class="rag-modal-header">
+          <div class="rag-modal-icon-danger" aria-hidden="true">
+            <i class="bi bi-trash3-fill"></i>
+          </div>
+          <div class="flex-grow-1 min-w-0">
+            <h2 id="deleteConvTitle" class="rag-modal-title">Xóa cuộc trò chuyện</h2>
+            <p class="rag-modal-desc">Bạn có chắc chắn muốn xóa cuộc trò chuyện này? Toàn bộ nội dung hỏi đáp trong phiên sẽ bị xóa vĩnh viễn.</p>
+          </div>
+          <button type="button" class="btn-close btn-sm" (click)="cancelDelete()" [disabled]="deletingConversation()" aria-label="Đóng"></button>
+        </div>
+
+        <div class="rag-modal-body">
+          <div class="rag-modal-preview-box">
+            <i class="bi bi-chat-left-text text-secondary flex-shrink-0" aria-hidden="true"></i>
+            <span class="text-truncate flex-grow-1" [title]="conv.title">{{ conv.title }}</span>
+          </div>
+        </div>
+
+        <div class="rag-modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-sm px-3" (click)="cancelDelete()" [disabled]="deletingConversation()">
+            Hủy bỏ
+          </button>
+          <button type="button" class="btn btn-danger btn-sm px-3 d-inline-flex align-items-center gap-1" (click)="confirmDelete()" [disabled]="deletingConversation()">
+            @if (deletingConversation()) {
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <span>Đang xóa…</span>
+            } @else {
+              <i class="bi bi-trash3 me-1" aria-hidden="true"></i>
+              <span>Xác nhận xóa</span>
+            }
+          </button>
         </div>
       </div>
     </div>
-    @if (chat.canManageKnowledge()) {
-      <div class="btn-group rag-tab-switcher" role="tablist" aria-label="Chế độ">
-        <button type="button" class="btn btn-sm" role="tab" [attr.aria-selected]="activeTab() === 'chat'"
-                [class.btn-primary]="activeTab() === 'chat'" [class.btn-outline-primary]="activeTab() !== 'chat'"
-                (click)="activeTab.set('chat')">
-          <i class="bi bi-chat-dots me-1" aria-hidden="true"></i>Trò chuyện
-        </button>
-        <button type="button" class="btn btn-sm" role="tab" [attr.aria-selected]="activeTab() === 'knowledge'"
-                [class.btn-primary]="activeTab() === 'knowledge'" [class.btn-outline-primary]="activeTab() !== 'knowledge'"
-                (click)="activeTab.set('knowledge')">
-          <i class="bi bi-journal-text me-1" aria-hidden="true"></i>Kho tri thức
-        </button>
-      </div>
-    }
-  </div>
+  }
 </div>
-
-@if (activeTab() === 'knowledge' && chat.canManageKnowledge()) {
-  <app-knowledge-base />
-} @else {
-  <div class="rag-workspace">
-    @if (historyOpen()) {
-      <div class="rag-drawer-backdrop d-lg-none" (click)="historyOpen.set(false)" aria-hidden="true"></div>
-    }
-    <aside class="card rag-sidebar-card" [class.drawer-open]="historyOpen()" aria-label="Lịch sử trò chuyện">
-      <div class="p-2 border-bottom d-flex gap-2">
-        <button type="button" class="btn btn-primary btn-sm flex-grow-1" (click)="newConversation()">
-          <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Cuộc trò chuyện mới
-        </button>
-      </div>
-      <div class="p-2 border-bottom">
-        <input type="search" class="form-control form-control-sm" placeholder="Tìm cuộc trò chuyện…" aria-label="Tìm cuộc trò chuyện"
-               [value]="search()" (input)="search.set($any($event.target).value)" />
-      </div>
-      <div class="rag-conv-list p-2">
-        @for (conversation of filteredConversations(); track conversation.id) {
-          <div class="rag-conv-item" [class.active]="chat.activeConversationId() === conversation.id" role="button" tabindex="0"
-               (click)="select(conversation)" (keydown.enter)="select(conversation)"
-               [attr.aria-current]="chat.activeConversationId() === conversation.id ? 'true' : null">
-            <div class="rag-conv-icon" aria-hidden="true"><i class="bi bi-chat-left-text"></i></div>
-            <div class="rag-conv-meta">
-              <div class="rag-conv-title">{{ conversation.title }}</div>
-              <div class="rag-conv-sub">{{ conversation.modifiedDate | date: 'dd/MM/yyyy HH:mm' }}</div>
-            </div>
-            <button type="button" class="btn btn-sm btn-link text-danger rag-conv-delete p-1" (click)="remove(conversation, $event)"
-                    [attr.aria-label]="'Xóa cuộc trò chuyện ' + conversation.title">
-              <i class="bi bi-trash" aria-hidden="true"></i>
-            </button>
-          </div>
-        } @empty {
-          <div class="text-secondary small text-center py-3">Chưa có cuộc trò chuyện nào</div>
-        }
-      </div>
-      <div class="small text-secondary p-2 border-top">Lịch sử chỉ bạn xem được và tự xóa sau 90 ngày.</div>
-    </aside>
-
-    <section class="card rag-chat-card" aria-label="Trò chuyện">
-      <div class="d-lg-none p-2 border-bottom">
-        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="historyOpen.set(true)">
-          <i class="bi bi-clock-history me-1" aria-hidden="true"></i>Lịch sử
-        </button>
-      </div>
-      <app-chatbot-thread class="rag-page-thread" />
-    </section>
-  </div>
-}

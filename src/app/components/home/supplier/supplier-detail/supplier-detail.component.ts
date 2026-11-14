@@ -70,7 +70,15 @@ export class SupplierDetailComponent {
   }
 
   onSubmit() {
-    console.log(this.supplierUpdateForm.value);
+    if (this.supplierUpdateForm.invalid) {
+      this.supplierUpdateForm.markAllAsTouched();
+      this.toastrService.error(
+        'Vui lòng nhập đầy đủ các trường bắt buộc (*)',
+        'Lỗi nhập liệu !',
+        this.toastrConfig
+      );
+      return;
+    }
     this.supplierService
       .update(this.supplierId, this.mappingDataToDTORequest())
       .subscribe({

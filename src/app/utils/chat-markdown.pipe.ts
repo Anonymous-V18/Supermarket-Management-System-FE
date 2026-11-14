@@ -41,9 +41,24 @@ function renderMarkdownLines(lines: string[]): string {
         detailLines.push(lines[i]);
         i++;
       }
+      const hasTable = detailLines.some((l) => isTableRow(l));
+      const filterBar = hasTable
+        ? `<div class="rag-table-filter-wrap"><i class="bi bi-search rag-table-filter-icon"></i><input type="search" class="rag-table-filter" placeholder="Tìm nhanh trong bảng (mã, tên, SĐT)..." aria-label="Tìm nhanh trong bảng"></div>`
+        : '';
       html.push(
-        `<details class="rag-details"><summary class="rag-summary"><i class="bi bi-chevron-down me-1"></i>${title}</summary><div class="rag-details-content">${renderMarkdownLines(detailLines)}</div></details>`
+        `<details class="rag-details"><summary class="rag-summary"><i class="bi bi-chevron-down me-1"></i>${title}</summary><div class="rag-details-content">${filterBar}${renderMarkdownLines(detailLines)}</div></details>`
       );
+    } else if (line.startsWith(':::kpi')) {
+      flushParagraph();
+      const kpiLines: string[] = [];
+      i++;
+      while (i < lines.length && lines[i].trim() !== ':::') {
+        if (lines[i].trim()) {
+          kpiLines.push(lines[i].trim());
+        }
+        i++;
+      }
+      html.push(renderKpiCards(kpiLines));
     } else if (line.startsWith(':::chart')) {
       // Visual chart block: :::chart <title> ... :::
       flushParagraph();
@@ -88,6 +103,26 @@ function renderMarkdownLines(lines: string[]): string {
   }
   flushParagraph();
   return html.join('');
+}
+
+function renderKpiCards(lines: string[]): string {
+  const cardsHtml: string[] = [];
+  for (const line of lines) {
+    const parts = line.split('|').map((s) => s.trim());
+    if (parts.length < 2) continue;
+    const label = parts[0];
+    const value = parts[1];
+    const subtext = parts.length > 2 ? parts[2] : '';
+    const tone = parts.length > 3 ? parts[3] : 'primary';
+    cardsHtml.push(
+      `<div class="rag-kpi-card rag-kpi-${tone}">` +
+        `<div class="rag-kpi-label">${label}</div>` +
+        `<div class="rag-kpi-value">${value}</div>` +
+        (subtext ? `<div class="rag-kpi-sub">${subtext}</div>` : '') +
+      `</div>`
+    );
+  }
+  return `<div class="rag-kpi-grid">${cardsHtml.join('')}</div>`;
 }
 
 function renderChart(title: string, lines: string[]): string {
@@ -138,6 +173,16 @@ function table(rows: string[]): string {
 }
 
 function inline(text: string): string {
+  const csvMatch = text.trim().match(/^\[([^\]]+)\]\((data:text\/csv[^)]+)\)$/);
+  if (csvMatch) {
+    const label = csvMatch[1];
+    const url = csvMatch[2];
+    const parts = url.split('#');
+    const realUrl = parts[0];
+    const fileName = parts[1] || 'bao-cao.csv';
+    return `<a href="${realUrl}" download="${fileName}" class="btn btn-sm btn-outline-success rag-download-btn"><i class="bi bi-file-earmark-arrow-down-fill me-1"></i>${label.replace(/^[👉📥🔗\s]+/, '')}</a>`;
+  }
+
   return text
     .replace(/`([^`]+)`/g, '<code class="rag-inline-code">$1</code>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
@@ -152,5 +197,8 @@ function inline(text: string): string {
         return `<a href="${realUrl}" download="${fileName}" class="btn btn-sm btn-outline-success rag-download-btn"><i class="bi bi-file-earmark-arrow-down-fill me-1"></i>${label.replace(/^[👉📥🔗\s]+/, '')}</a>`;
       }
       return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="rag-link">${label.replace(/^[👉📥🔗\s]+/, '')}</a>`;
+    })
+    .replace(/\b((?:HD|TH|PN|PX|CK|KK)\d{6}|(?:SP|NV)\d{5})\b/g, (code) => {
+      return `<button type="button" class="rag-entity-chip" data-chat-query="Chi tiết ${code}" title="Nhấn để xem chi tiết ${code}">${code}</button>`;
     });
 }

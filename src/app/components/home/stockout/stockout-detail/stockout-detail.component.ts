@@ -83,6 +83,11 @@ export class StockoutDetailComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.stockOutUpdateForm.invalid) {
+      this.stockOutUpdateForm.markAllAsTouched();
+      this.toastrService.error('Vui lòng nhập đầy đủ các trường bắt buộc (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      return;
+    }
     this.stockoutService
       .update(this.stockOutId, this.mappingDataToDTORequest())
       .subscribe({

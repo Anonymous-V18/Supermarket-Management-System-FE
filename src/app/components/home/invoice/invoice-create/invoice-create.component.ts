@@ -74,6 +74,17 @@ export class InvoiceCreateComponent {
   }
 
   onSubmit() {
+    if (this.invoiceCreateForm.invalid) {
+      this.invoiceCreateForm.markAllAsTouched();
+      if (!this.invoiceCreateForm.value.warehouseId) {
+        this.toastrService.error('Vui lòng chọn kho xuất hàng (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      } else if (this.invoiceDetails().length === 0) {
+        this.toastrService.error('Vui lòng thêm ít nhất một sản phẩm vào hóa đơn (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      } else {
+        this.toastrService.error('Vui lòng nhập đầy đủ các trường bắt buộc (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      }
+      return;
+    }
     const value = this.invoiceCreateForm.getRawValue();
     const invoiceInsertDTORequest = new InvoiceInsertDTORequest(
       value.warehouseId ?? '',

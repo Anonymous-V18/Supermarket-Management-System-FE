@@ -68,6 +68,15 @@ export class EmployeeCreateComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.employeeCreateForm.invalid) {
+      this.employeeCreateForm.markAllAsTouched();
+      this.toastrService.error(
+        'Vui lòng nhập đầy đủ các trường bắt buộc (*)',
+        'Lỗi nhập liệu !',
+        this.toastrConfig
+      );
+      return;
+    }
     this.employeeService.insert(this.mappingDataToDTORequest()).subscribe({
       next: (response: ApiResponse<void>) => {
         this.toastrService.success(

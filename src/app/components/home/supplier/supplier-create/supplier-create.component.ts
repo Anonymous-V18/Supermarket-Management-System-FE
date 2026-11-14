@@ -59,6 +59,15 @@ export class SupplierCreateComponent {
   }
 
   onSubmit() {
+    if (this.supplierCreateForm.invalid) {
+      this.supplierCreateForm.markAllAsTouched();
+      this.toastrService.error(
+        'Vui lòng nhập đầy đủ các trường bắt buộc (*)',
+        'Lỗi nhập liệu !',
+        this.toastrConfig
+      );
+      return;
+    }
     this.supplierService.insert(this.mappingDataToDTORequest()).subscribe({
       next: (response: ApiResponse<void>) => {
         this.toastrService.success(

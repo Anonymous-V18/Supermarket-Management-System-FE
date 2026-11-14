@@ -81,6 +81,11 @@ export class StockinDetailComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.stockInUpdateForm.invalid) {
+      this.stockInUpdateForm.markAllAsTouched();
+      this.toastrService.error('Vui lòng nhập đầy đủ các trường bắt buộc (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      return;
+    }
     this.stockinService
       .update(this.stockInId, this.mappingDataToDTORequest())
       .subscribe({

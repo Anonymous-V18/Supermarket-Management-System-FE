@@ -69,6 +69,15 @@ export class ProductDetailComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.productUpdateForm.invalid) {
+      this.productUpdateForm.markAllAsTouched();
+      this.toastrService.error(
+        'Vui lòng nhập đầy đủ các trường bắt buộc (*)',
+        'Lỗi nhập liệu !',
+        this.toastrConfig
+      );
+      return;
+    }
     this.productService
       .update(this.productId, this.mappingDataToDTORequest())
       .subscribe({

@@ -36,6 +36,15 @@ export class LoginComponent {
   };
 
   onSubmit() {
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      this.toastService.error(
+        'Vui lòng nhập tên đăng nhập và mật khẩu (tối thiểu 8 ký tự)!',
+        'Lỗi đăng nhập !',
+        this.toastrConfig
+      );
+      return;
+    }
     this.loginDTORequest = {
       ...this.loginDTORequest,
       ...this.loginForm.value,

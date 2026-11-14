@@ -40,7 +40,7 @@
           } @else {
             <div class="rag-bubble ai-bubble">
               @if (message.content) {
-                <div class="rag-md" [innerHTML]="message.content | chatMarkdown"></div>
+                <div class="rag-md" [innerHTML]="message.content | chatMarkdown" (click)="onMarkdownClick($event)" (input)="onMarkdownInput($event)"></div>
               } @else if (message.streaming) {
                 <div class="rag-typing" role="status"><span></span><span></span><span></span>
                   <span class="visually-hidden">Đang trả lời…</span></div>
@@ -124,11 +124,75 @@
   }
 
   <div class="rag-composer">
+    @if (aiModalOpen()) {
+      <div class="rag-ai-config-panel">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="fw-semibold small text-dark">
+            <i class="bi bi-stars text-primary me-1"></i>Kết nối AI thông minh (API Key Miễn Phí)
+          </div>
+          <button type="button" class="btn-close btn-sm" (click)="toggleAiModal()" aria-label="Đóng"></button>
+        </div>
+
+        <div class="rag-ai-provider-tabs mb-2">
+          <button type="button" class="rag-ai-tab" [class.active]="aiProvider() === 'gemini'" (click)="selectAiProvider('gemini')">
+            Google Gemini (Free)
+          </button>
+          <button type="button" class="rag-ai-tab" [class.active]="aiProvider() === 'groq'" (click)="selectAiProvider('groq')">
+            Groq Llama 3.3 (Free)
+          </button>
+          <button type="button" class="rag-ai-tab" [class.active]="aiProvider() === 'openrouter'" (click)="selectAiProvider('openrouter')">
+            OpenRouter (Free)
+          </button>
+        </div>
+
+        <div class="small text-secondary mb-2">
+          @if (aiProvider() === 'gemini') {
+            Lấy key miễn phí tại <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (bắt đầu bằng <code>AIza...</code>)
+          } @else if (aiProvider() === 'groq') {
+            Lấy key miễn phí siêu tốc tại <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> (bắt đầu bằng <code>gsk_...</code>)
+          } @else {
+            Lấy key miễn phí tại <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> (bắt đầu bằng <code>sk-or-...</code>)
+          }
+        </div>
+
+        <div class="row g-2 mb-2">
+          <div class="col-12 col-sm-7">
+            <input type="password" class="form-control form-control-sm" placeholder="Dán API Key vào đây (tự nhận diện)..."
+                   [value]="aiApiKey()" (input)="onAiKeyInput($event)">
+          </div>
+          <div class="col-12 col-sm-5">
+            <input type="text" class="form-control form-control-sm" placeholder="Tên model..."
+                   [value]="aiModel()" (input)="onAiModelInput($event)">
+          </div>
+        </div>
+
+        @if (aiNotice()) {
+          <div class="small text-success fw-medium mb-2"><i class="bi bi-check-circle-fill me-1"></i>{{ aiNotice() }}</div>
+        }
+
+        <div class="d-flex justify-content-end gap-2">
+          @if (aiActive()) {
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="disableAi()" [disabled]="aiSaving()">
+              Tắt AI
+            </button>
+          }
+          <button type="button" class="btn btn-sm btn-primary" (click)="saveAiKey()" [disabled]="aiSaving() || !aiApiKey()">
+            <i class="bi bi-check2-circle me-1"></i>Lưu & Kích hoạt AI
+          </button>
+        </div>
+      </div>
+    }
+
     <div class="rag-scope-bar" role="radiogroup" aria-label="Phạm vi câu hỏi">
       @for (scope of scopes(); track scope.value) {
         <button type="button" class="rag-scope-pill" role="radio" [class.active]="chat.scope() === scope.value"
                 [attr.aria-checked]="chat.scope() === scope.value" (click)="setScope(scope.value)">{{ scope.label }}</button>
       }
+      <button type="button" class="rag-ai-pill ms-auto" [class.active]="aiActive()" (click)="toggleAiModal()"
+              title="Cấu hình API Key AI miễn phí (Gemini / Groq / OpenRouter)">
+        <i class="bi" [class.bi-stars]="aiActive()" [class.bi-key-fill]="!aiActive()"></i>
+        <span>{{ aiBadgeLabel() }}</span>
+      </button>
     </div>
     <div class="rag-composer-box">
       <textarea #composer class="rag-composer-input" rows="1" [maxLength]="maxLength"

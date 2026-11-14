@@ -113,6 +113,11 @@ export class SalesReturnFormComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.toastrService.error('Vui lòng nhập đầy đủ các trường bắt buộc (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      return;
+    }
     const lines = this.lines()
       .controls.map((line) => ({ productId: line.value.productId, quantity: Number(line.value.quantity) || 0 }))
       .filter((line) => line.quantity > 0);

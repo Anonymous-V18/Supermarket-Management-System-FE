@@ -58,6 +58,11 @@ export class ChecklistItemComponent implements OnInit {
   }
 
   add() {
+    if (this.newItemForm.invalid) {
+      this.newItemForm.markAllAsTouched();
+      this.toastrService.error('Vui lòng nhập đầy đủ các trường bắt buộc (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      return;
+    }
     const value = this.newItemForm.getRawValue();
     const request: ChecklistItemDTORequest = {
       code: value.code ?? '',

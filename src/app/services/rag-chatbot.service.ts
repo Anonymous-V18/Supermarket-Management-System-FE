@@ -34,6 +34,14 @@ export interface ChatMessageView {
   question?: string;
 }
 
+export interface AiConfigStatus {
+  enabled: boolean;
+  provider: string;
+  model: string;
+  hasApiKey: boolean;
+  maskedApiKey: string;
+}
+
 // Key of the conversation that has not been saved yet
 export const NEW_CONVERSATION = '__new__';
 
@@ -50,6 +58,7 @@ export class RagChatbotService {
 
   readonly widgetOpen = signal(false);
   readonly capabilities = signal<ChatCapabilitiesDTOResponse | null>(null);
+  readonly aiConfig = signal<AiConfigStatus | null>(null);
   readonly conversations = signal<ChatConversationDTOResponse[]>([]);
   readonly activeConversationId = signal<string>(NEW_CONVERSATION);
   readonly scope = signal<ChatScope>('all');
@@ -101,16 +110,30 @@ export class RagChatbotService {
       this.loading = Promise.all([
         firstValueFrom(this.httpClient.get<ApiResponse<ChatCapabilitiesDTOResponse>>(ApiUrl.chatbot.capabilities)),
         firstValueFrom(this.httpClient.get<ApiResponse<ChatConversationDTOResponse[]>>(ApiUrl.chatbot.conversations)),
+        firstValueFrom(this.httpClient.get<ApiResponse<AiConfigStatus>>(ApiUrl.chatbot.aiConfig)).catch(() => null),
       ])
-        .then(([capabilities, conversations]) => {
+        .then(([capabilities, conversations, aiCfg]) => {
           this.capabilities.set(capabilities.result);
           this.conversations.set(conversations.result ?? []);
+          if (aiCfg?.result) {
+            this.aiConfig.set(aiCfg.result);
+          }
           this.loadError.set(null);
         })
         .catch((error) => this.loadError.set(this.messageOf(error)))
         .finally(() => (this.loading = null));
     }
     return this.loading;
+  }
+
+  async saveAiConfig(payload: { enabled?: boolean; provider?: string; apiKey?: string; model?: string }): Promise<AiConfigStatus> {
+    const res = await firstValueFrom(this.httpClient.post<ApiResponse<AiConfigStatus>>(ApiUrl.chatbot.aiConfig, payload));
+    this.aiConfig.set(res.result);
+    const cap = this.capabilities();
+    if (cap) {
+      this.capabilities.set({ ...cap, llmEnabled: res.result.enabled && res.result.hasApiKey });
+    }
+    return res.result;
   }
 
   // Forget everything (logout / another user); also stops answers still streaming

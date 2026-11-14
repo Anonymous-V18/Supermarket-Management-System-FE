@@ -29,6 +29,15 @@ export class ChangePasswordComponent {
   private userService = inject(UserService);
 
   onSubmit() {
+    if (this.changePasswordForm.invalid) {
+      this.changePasswordForm.markAllAsTouched();
+      this.toastrService.error('Vui lòng nhập đầy đủ các trường bắt buộc (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      return;
+    }
+    if (this.changePasswordForm.value.newPassword !== this.changePasswordForm.value.confirmPassword) {
+      this.toastrService.error('Mật khẩu xác nhận không trùng khớp!', 'Lỗi nhập liệu !', this.toastrConfig);
+      return;
+    }
     this.userService.changePassword(this.mappingDataToDTORequest()).subscribe({
       next: (response: ApiResponse<void>) => {
         this.toastrService.success(

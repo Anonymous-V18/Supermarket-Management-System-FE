@@ -63,6 +63,15 @@ export class ProductCreateComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.productCreateForm.invalid) {
+      this.productCreateForm.markAllAsTouched();
+      this.toastrService.error(
+        'Vui lòng nhập đầy đủ các trường bắt buộc (*)',
+        'Lỗi nhập liệu !',
+        this.toastrConfig
+      );
+      return;
+    }
     this.productService.insert(this.mappingDataToDTORequest()).subscribe({
       next: (response: ApiResponse<void>) => {
         this.toastrService.success(

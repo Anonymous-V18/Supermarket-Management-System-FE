@@ -104,7 +104,7 @@
                       </label>
                       <button type="button" class="btn btn-sm btn-link p-1" (click)="reindex(doc)" [disabled]="busyId() !== null"
                               [attr.aria-label]="'Index lại ' + doc.title" title="Index lại"><i class="bi bi-arrow-repeat"></i></button>
-                      <button type="button" class="btn btn-sm btn-link text-danger p-1" (click)="remove(doc)" [disabled]="busyId() !== null"
+                      <button type="button" class="btn btn-sm btn-link text-danger p-1" (click)="promptDelete(doc)" [disabled]="busyId() !== null"
                               [attr.aria-label]="'Xóa ' + doc.title" title="Xóa"><i class="bi bi-trash"></i></button>
                     </td>
                   </tr>
@@ -148,4 +148,46 @@
       </div>
     </div>
   </div>
+
+  @if (docToDelete(); as doc) {
+    <div class="rag-modal-backdrop" (click)="cancelDelete()" (keydown.escape)="cancelDelete()" tabindex="0" role="dialog" aria-modal="true" aria-labelledby="deleteDocTitle">
+      <div class="rag-modal-dialog" (click)="$event.stopPropagation()">
+        <div class="rag-modal-header">
+          <div class="rag-modal-icon-danger" aria-hidden="true">
+            <i class="bi bi-trash3-fill"></i>
+          </div>
+          <div class="flex-grow-1 min-w-0">
+            <h2 id="deleteDocTitle" class="rag-modal-title">Xóa tài liệu tri thức</h2>
+            <p class="rag-modal-desc">Bạn có chắc chắn muốn xóa tài liệu này? Chatbot sẽ không trả lời theo tài liệu này nữa.</p>
+          </div>
+          <button type="button" class="btn-close btn-sm" (click)="cancelDelete()" [disabled]="deletingDoc()" aria-label="Đóng"></button>
+        </div>
+
+        <div class="rag-modal-body">
+          <div class="rag-modal-preview-box">
+            <i class="bi bi-file-earmark-text text-secondary flex-shrink-0 fs-5" aria-hidden="true"></i>
+            <div class="min-w-0 flex-grow-1">
+              <div class="text-truncate fw-semibold" [title]="doc.title">{{ doc.title }}</div>
+              <div class="text-secondary small">{{ doc.chunkCount }} đoạn trích · {{ doc.sourceType }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rag-modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-sm px-3" (click)="cancelDelete()" [disabled]="deletingDoc()">
+            Hủy bỏ
+          </button>
+          <button type="button" class="btn btn-danger btn-sm px-3 d-inline-flex align-items-center gap-1" (click)="confirmDelete()" [disabled]="deletingDoc()">
+            @if (deletingDoc()) {
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <span>Đang xóa…</span>
+            } @else {
+              <i class="bi bi-trash3 me-1" aria-hidden="true"></i>
+              <span>Xác nhận xóa</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

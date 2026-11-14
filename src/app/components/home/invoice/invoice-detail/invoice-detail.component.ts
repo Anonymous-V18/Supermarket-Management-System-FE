@@ -86,6 +86,11 @@ export class InvoiceDetailComponent {
   }
 
   onSubmit() {
+    if (this.invoiceUpdateForm.invalid) {
+      this.invoiceUpdateForm.markAllAsTouched();
+      this.toastrService.error('Vui lòng nhập đầy đủ các trường bắt buộc (*)', 'Lỗi nhập liệu !', this.toastrConfig);
+      return;
+    }
     this.invoiceService
       .update(this.invoiceId, this.mappingDataToDTORequest())
       .subscribe({

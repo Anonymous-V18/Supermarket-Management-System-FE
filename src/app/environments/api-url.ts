@@ -137,6 +137,7 @@ export const ApiUrl = {
   },
   chatbot: {
     capabilities: `${environment.apiUrl}/chatbot/capabilities`,
+    aiConfig: `${environment.apiUrl}/chatbot/ai-config`,
     ask: `${environment.apiUrl}/chatbot/ask`,
     conversations: `${environment.apiUrl}/chatbot/conversations/show-all`,
     messages: `${environment.apiUrl}/chatbot/conversations/get-messages`,
